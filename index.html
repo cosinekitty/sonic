@@ -1,0 +1,134 @@
+<html>
+
+<!-- 
+HEY!  What are you doing reading my HTML code?  WHO DO YOU THINK YOU ARE???
+(Just kidding!)
+
+
+index.html for Sonic programming language home page.
+Copyright (C) 1998 by Don Cross / dcross@intersrv.com
+-->
+
+<head>
+<title>&quot;Sonic&quot; - a Digital Audio Programming Language</title>
+
+<meta name="description" 
+content="Sonic: A Digital Audio Programming Language">
+
+<meta name="keywords" content="Sonic, digital audio, DSP, computer programming languages, software, computer music, sound, acoustic models, digital synthesis, synthesizer, sequencer, linear filters, IIR, FIR, sinewave, sawtooth, infinite impulse response, finite impulse response, C++, translator, compiler, interpreter, scripting">
+
+</head>
+
+<body bgcolor="lightcyan">
+<h2 align="center">&quot;Sonic&quot; - a Digital Audio Programming Language</h2>
+<h3 align="center">by <a href="http://www.intersrv.com/~dcross/">Don Cross</a> - <a href="mailto:dcross@intersrv.com">dcross@intersrv.com</a></h3>
+
+<p align="center"><font face="Arial">This page was last updated 21 September 1998.</font></p>
+
+<hr>
+
+<h3>Table of Contents</h3>
+<ul>
+	<li><a href="#intro">Introduction</a></li>
+	<li><a href="#features">Features of Sonic</a></li>
+	<li><a href="#limits">Limitations of Sonic</a></li>
+	<li><a href="#mechanics">How it Works</a></li>
+	<li><a href="#install">Installation Procedure</a></li>
+	<li><a href="#download">Download</a></li>
+	<li><a href="#revision">Revision History</a></li>
+	<li><a href="#feedback">Feedback Requested</a></li>
+</ul>
+
+<hr>
+<a name="intro"></a>
+<h3>Introduction</h3>
+<b>Sonic</b> is a computer programming language I have designed.  Its purpose is to facilitate the synthesis and processing of digital audio recordings, with emphasis on concise coding and rapid development.  Sonic contains constructs which will be familiar to users of languages like C++ and Pascal, such as assignment statements, procedures, local variables, <tt>while</tt> loops, and <tt>if</tt> statements.  However, because it is so specialized for working with digital audio, Sonic is not intended to be a general-purpose programming language.
+<p>
+<hr>
+<a name="features"></a>
+<h3>Features of Sonic</h3>
+<ul>
+	<li>Concise, powerful syntax for expressing many DSP algorithms.</li>
+	<li>Many useful digital audio programs can be written in less than 10 lines of code!</li>
+	<li>Built-in support for efficient sinewaves, sawtooths, and linear filters (IIR).
+	<li>Language is user-extensible: write your own C++ classes and import them into Sonic programs.</li>
+	<li>Automatic scaling of output levels - Sonic uses temporary floating point files to hold output, then scales to fixed point before exiting.</li>
+	<li>It's <u>free</u>!  I'm doing this for fun, not money.</li>
+</ul>
+
+<hr>
+<a name="limits"></a>
+<h3>Limitations of Sonic</h3>
+<ul>	
+	<li>Only the WAV audio format is currently supported.  (Want your favorite format supported?  Point me to a good file format specification and I'll see what I can do...)</li>
+	<li>No console text I/O yet.  Currently you cannot write the classic "Hello World" program in Sonic, unless perhaps you want to output Morse Code!</li>
+	<li>Input and output audio files must be specified on the command line in a Sonic program in order to persist after program execution terminates.  Programs may create temporary files to aid in creating persistent output files, but these temporary files are automatically erased when the program quits.
+</ul>
+
+<hr>
+<a name="mechanics"></a>
+<h3>How it works</h3>
+<ul>
+	<li><a href="example1.html">A sample program</a> - introduction to the mechanics of the Sonic language.
+	<li><a href="translator.html">The Sonic translator converts Sonic code into C++ code</a> for execution speed and operating system portability.</li>
+	<li><a href="manual.html">User's Manual</a> - Programmer's reference for the syntax and semantics of the Sonic language, including use of the Sonic/C++ translator.
+</ul>
+
+<hr>
+<a name="install"></a>
+<h3>Installation Procedure</h3>
+This is the recommended installation procedure for getting Sonic up and running on your computer.  All of the files you need <a href="#download">can be downloaded below</a>.
+<ol>
+	<li>Create a directory on your system for Sonic, e.g. <code>/sonic</code> on a Unix machine, or <code>C:\SONIC</code> on a DOS/Windows machine.</li>
+	<li>Create a directory under the Sonic directory for the runtime library, e.g., <code>/sonic/runtime</code> or <code>C:\SONIC\RUNTIME</code>.</li>
+	<li>Download the file <code>runtime.zip</code> into the directory you created in the previous step.  Unzip the contents of the file into the same directory.</li>
+	<li>Create a directory for the Sonic/C++ translator source code, e.g., <code>/sonic/src</code>.</li>
+	<li>Download the file <code>sonicsrc.zip</code> into the source directory from the previous step.  Unzip its contents into the same directory.</li>
+	<li>If you are using 32-bit Windows (95, 98, or NT), and you don't want to bother with getting the translator source code to compile, then create a directory like <code>C:\SONIC\BIN</code> and download the file <code>sonicexe.zip</code> there.  Unzip the contents of this file into the same place.  Add this directory to the <code>PATH</code> by editing your <code>AUTOEXEC.BAT</code> file, so that the operating system can find SONIC.EXE.</li>
+	<li>Alternatively, if you are <u>not</u> running 32-bit Windows, you will have to compile the Sonic/C++ translator yourself.  Use your favorite C++ compiler to compile and link all of the <code>*.cpp</code> files in <code>/sonic/src</code>.  All of the source and header files you need come from <code>sonicsrc.zip</code>.  You don't need the <code>runtime.zip</code> to compile and link the translator itself; that source code is used only to compile and link C++ source code generated <u>by</u> the translator.  Make sure the resulting executable is in your search path so that the operating system can find it.</li>
+</ol>
+
+<hr>
+<a name="download"></a>
+<h3>Download version 0.902 (beta)</h3>
+<ul>
+	<li><code><a href="sonicsrc.zip">sonicsrc.zip</a> [50k]</code> - Complete C++ source code to the Sonic/C++ translator.  Developed as a Win32 console mode program, but should be easy to port to other operating systems like Unix, OS/2, etc.  In fact, if you have to modify the source code at all to get this to compile on your system, please let me know at the email address above so that I can fix it.</li>
+	<li><code><a href="sonicexe.zip">sonicexe.zip</a> [76k]</code> - Contains Windows 95 / 98 / NT executable for the Sonic/C++ translator.  Although this is a command-line program, it won't run under MS-DOS or Windows 3.X due to use of 32-bit instructions.  If you are using a 32-bit variety of Microsoft Windows, you can download this file if you don't want to bother with compiling the C++ source in the file <code>sonicsrc.zip</code> above.
+	<li><code><a href="runtime.zip">runtime.zip</a> [14k]</code> - You will need the source code and headers in this zip file to compile and link the output of the Sonic/C++ translator.  This is in effect the runtime library of the Sonic language.
+<!--
+	<li><code><a href="samples.zip">samples.zip</a> []</code> - Download this file for commented sample programs written in Sonic, illustrating useful language features.  Alternatively, <a href="samples.html">browse them online</a>.
+-->
+</ul>
+
+<hr>
+<a name="revision"></a>
+<h3>Revision History</h3>
+Here is a <a href="revision.html">revision history</a> of the Sonic/C++ translator and its runtime library.  Look here if you want to see what changes have been made and what bugs have been fixed.
+
+<p>
+<hr>
+<a name="feedback"></a>
+<h3>Feedback requested!</h3>
+In its current state, Sonic is rather limited.  I make no pretense that it is the ultimate language for its stated purpose.  Nonetheless, I am excited by its potential as a digital audio programming language.  I think I'm onto the germ of a good idea here.  I'm publishing this language because the feedback of a community of users is invaluable for a well-rounded system.  My intent is to spark interest in others interested in digital audio programming, and see if this language can become something truly valuable.
+<p>
+Please send any comments, questions, or suggestions about Sonic to the email address at the top of this page.  I can't promise I will satisfy every request.  As Sonic changes and matures as a language, there will be conflicting forces trying to pull it in different directions.  I will have to make decisions on how to steer it in the &quot;right direction&quot;, whatever that means.  However, I will definitely strive to fix any bugs reported, and suggestions for future development of Sonic will influence my decisions and priorities.  Ideas are always appreciated, even if I end up deciding not to use them.
+<p>
+<hr>
+<p align="center">[
+<a href="http://www.intersrv.com/~dcross/">home</a> |
+<a href="http://www.intersrv.com/~dcross/audio.html">digital audio</a>
+]</p>
+
+<p align="center">
+<!-- BEGIN WEBSIDESTORY CODE - ALTERING THIS CODE WILL CAUSE TERMINATION OF ACCOUNT -->
+<a href="http://world1000.com/?W62529442" target="_top">
+<img src="http://w3.hitbox.com/w8/W62529442.cgi" border=0 height=62 width=88
+alt="CLICK HERE TO VISIT THE WORLD 1000!"></a>
+<!-- END WEBSIDESTORY CODE -->
+<br><br>
+
+<a href="http://w3.hitbox.com/w8/index.cgi?W62529442">View Sonic Home Page Statistics</a>
+</p>
+
+</body>
+</html>

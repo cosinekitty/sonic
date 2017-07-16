@@ -1,0 +1,79 @@
+<html>
+
+<head>
+<title>Revision History of the Sonic Programming Language</title>
+</head>
+
+<body bgcolor="tan">
+<h2 align="center">Revision History of the <a href="index.html">Sonic Programming Language</a></h2>
+<h3 align="center">by 
+<a href="http://www.intersrv.com/~dcross/">Don Cross</a> - 
+<a href="mailto:dcross@intersrv.com">dcross@intersrv.com</a></h3>
+<hr>
+This page lists changes to the <a href="index.html">Sonic programming language</a>, along with the version number and release date of each change.  Changes are listed in reverse chronological order.
+<p>
+
+<table border="1">
+	<tr>
+		<td align="center" width="25%" nowrap><font face="Arial,Geneva"><b>Version</b></font></td>
+		<td align="center" width="25%" nowrap><font face="Arial,Geneva"><b>Date Released</b></font></td>
+		<td align="center" nowrap><font face="Arial,Geneva"><b>Description of Changes</b></font></td>
+	</tr>
+
+	<tr>
+		<td align="center"><font size="+1" face="Arial">0.904</font></td>
+		<td align="center" with="35%" nowrap>29 September 1998</td>
+		<td><ul>
+			<li>Added <a href="manual.html#syntax_array">array</a> types, variables, and function parameters.</li>
+			<li>Increased cache size for input waves from 256 samples to 64K samples.  This greatly improves runtime performance for wave assignments that have certain non-linear index expressions.</li>
+			<li>Fixed lexical analyzer bug: double-slash comments at the beginning of two consecutive lines caused the second comment to be not skipped over, resulting in an erroneous parser error.  Yuck!</li>
+			<li>Eliminated unnecessary typecasts in generated C++ calls to intrinsic functions and wave expressions.</li>
+		</ul></td>
+	</tr>
+
+	<tr>
+		<td align="center"><font size="+1" face="Arial">0.903</font></td>
+		<td align="center" with="35%" nowrap>26 September 1998</td>
+		<td><ul>
+			<li>Added Fast Fourier Transform filter pseudo-function 
+<a href="manual.html#pseudofunc_fft">fft</a>.
+			<li>Added support for passing variables to a function by reference.</li>
+		</ul></td>
+	</tr>
+
+	<tr>
+		<td align="center"><font size="+1" face="Arial">0.902</font></td>
+		<td align="center" width="35%" nowrap>21 September 1998</td>
+		<td><ul>
+			<li>Added support for <a href="manual.html#syntax_var">global variables</a>.</li>
+			<li>Fixed a bug in which a variable of type other than 
+<a href="manual.html#syntax_function_import">import function</a> could have more than one initializer expression enclosed in parentheses.</li>
+			<li>There was a bug that caused the 
+<a href="manual.html#syntax_function_user">program function</a>
+to not be found if a function tried to call it, resulting in an &quot;unknown function&quot; error.  This has been corrected.</li>
+			<li>There was a situation where the translator could report an &quot;internal error&quot; that was actually an ordinary syntax error.  The wording of the error message has been changed to avoid confusing the user.</li>
+		</ul></td>
+	</tr>
+
+	<tr>
+		<td align="center"><font size="+1" face="Arial">0.901</font></td>
+		<td align="center" width="35%" nowrap>19 September 1998</td>
+		<td><ul>
+			<li>Added the ability to linearly interpolate between samples when an input wave is subscripted with a non-integer sample index expression.  This results in much smoother sound in that case.  See the documentation about the new built-in constant 
+<tt><a href="manual.html#syntax_constant">interpolate</a></tt>.</li>
+			<li>Now an error occurs when the translator encounters more than one definition of any of the <a href="manual.html#syntax_constant">built-in constants</a>.</li>
+			<li>Was not checking the data types of channel index and sample index in a wave expression.  Now, if they are not of numeric type, a translator error occurs.</li>
+			<li>Made <tt>SonicType::operator==</tt> in the translator source be a const member function.</li>
+			<li>Got rid of member variables <tt>SonicParse_Program::bitsPerSample</tt> and <tt>SonicParse_Program::bitsPerSample_explicit</tt> because they were not being used anyway.</li>
+		</ul></td>
+	</tr>
+
+	<tr>
+		<td align="center"><font size="+1" face="Arial">0.900</font></td>
+		<td align="center" nowrap>14 September 1998</td>
+		<td align="center"><i>First release of Sonic on the Web.</i></td>
+	</tr>
+</table>
+
+</body>
+</html>
