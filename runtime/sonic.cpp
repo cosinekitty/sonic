@@ -1101,13 +1101,13 @@ double Sonic_FFT_Filter::filter (
             {
                 // scoot frequencies up...
 
-                for ( i=halfSize; i >= binShift; --i )
+                for ( int i=halfSize; i >= binShift; --i )
                 {
                     freqReal[i] = freqReal[i-binShift];
                     freqImag[i] = freqImag[i-binShift];
                 }
 
-                for ( ; i >= 0; --i )
+                for ( int i=halfSize; i >= 0; --i )
                     freqReal[i] = freqImag[i] = double(0);
             }
             else if ( binShift < 0 )
@@ -1115,13 +1115,13 @@ double Sonic_FFT_Filter::filter (
                 // scoot frequencies down...
 
                 long limit = halfSize + binShift;
-                for ( i=0; i <= limit; ++i )
+                for ( int i=0; i <= limit; ++i )
                 {
                     freqReal[i] = freqReal[i-binShift];
                     freqImag[i] = freqImag[i-binShift];
                 }
 
-                for ( ; i <= halfSize; ++i )
+                for ( int i=0; i <= halfSize; ++i )
                     freqReal[i] = freqImag[i] = double(0);
             }
 
@@ -1129,7 +1129,7 @@ double Sonic_FFT_Filter::filter (
             // we know that the negative frequency components are just
             // the complex conjugates of the positive frequency components.
 
-            for ( i = halfSize + 1; i < fftSize; ++i )
+            for ( int i = halfSize + 1; i < fftSize; ++i )
             {
                 freqReal[i] =  freqReal[fftSize - i];
                 freqImag[i] = -freqImag[fftSize - i];
@@ -1137,7 +1137,7 @@ double Sonic_FFT_Filter::filter (
 
             fft_double ( fftSize, 1, freqReal, freqImag, outBuffer2[c], timeImag );   // inverse FFT
 
-            for ( i=0; i < halfSize; ++i )
+            for ( int i=0; i < halfSize; ++i )
                 inBuffer[c][i] = inBuffer[c][i + halfSize];
         }       
 
