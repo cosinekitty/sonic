@@ -20,7 +20,7 @@
     is defined more than once.
 
 =============================================================================*/
-#include <fstream.h>
+#include <fstream>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>

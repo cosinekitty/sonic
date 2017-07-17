@@ -17,7 +17,7 @@
     the new feature: global variables.
 
 ========================================================================*/
-#include <iostream.h>
+#include <iostream>
 #include <stdio.h>
 
 #include "scan.h"

@@ -12,8 +12,8 @@
     erases the output C++ source file, if it exists.
 
 =======================================================================*/
-#include <iomanip.h>
-#include <fstream.h>
+#include <iomanip>
+#include <fstream>
 #include <stdio.h>
 
 #include "scan.h"

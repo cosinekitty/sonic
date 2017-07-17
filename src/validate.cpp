@@ -37,7 +37,7 @@
     of compatible types, and may not be of type 'wave'.
 
 ===========================================================================*/
-#include <iostream.h>
+#include <iostream>
 #include <stdio.h>
 
 #include "scan.h"

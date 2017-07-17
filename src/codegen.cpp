@@ -33,7 +33,7 @@
     when the assignment is a wave assignment.
 
 ==========================================================================*/
-#include <iostream.h>
+#include <iostream>
 #include <stdio.h>
 
 #include "scan.h"

@@ -11,7 +11,7 @@
     any are there and returns that token.)
 
 =======================================================================*/
-#include <iostream.h>
+#include <iostream>
 #include <new.h>
 #include <string.h>
 #include <stdio.h>
