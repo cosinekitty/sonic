@@ -13,6 +13,7 @@
 
 =======================================================================*/
 #include <iomanip>
+#include <iostream>
 #include <fstream>
 #include <stdio.h>
 
@@ -25,21 +26,21 @@ void SonicGenCleanup();
 
 int main ( int argc, char *argv[] )
 {
-    cout << "Sonic/C++ translator - Copyright (C) 1998 by Don Cross <cosinekitty@gmail.com>\n";
-    cout << "Version " << SONIC_VERSION << ", released on " << SONIC_RELEASE_DATE << ".\n";
-    cout << "https://github.com/cosinekitty/sonic" << "\n\n";
+    std::cout << "Sonic/C++ translator - Copyright (C) 1998 by Don Cross <cosinekitty@gmail.com>\n";
+	std::cout << "Version " << SONIC_VERSION << ", released on " << SONIC_RELEASE_DATE << ".\n";
+	std::cout << "https://github.com/cosinekitty/sonic" << "\n\n";
 
     if ( argc != 2 )
     {
-        cerr << "Use:  SONIC sourceFile\n\n";
+		std::cerr << "Use:  SONIC sourceFile\n\n";
         return 1;
     }
 
     const char *filename = argv[1];
-    ifstream input ( filename, ios::nocreate );
+    std::ifstream input ( filename, ios::nocreate );
     if ( !input )
     {
-        cerr << "Error:  Cannot open source file '" << filename << "'" << endl;
+		std::cerr << "Error:  Cannot open source file '" << filename << "'" << std::endl;
         return 1;
     }
 
@@ -53,23 +54,23 @@ int main ( int argc, char *argv[] )
     }
     catch ( const SonicParseException &spe )
     {
-        cerr << spe;
+		std::cerr << spe;
         SonicGenCleanup();
         return 1;
     }
     catch ( const char *message )
     {
-        cerr << message << endl;
+		std::cerr << message << std::endl;
         SonicGenCleanup();
         return 1;
     }
     catch ( ... )
     {
-        cerr << "Error:  Unknown exception received!" << endl;
+		std::cerr << "Error:  Unknown exception received!" << std::endl;
         throw;
     }
 
-    cout << "Translation completed successfully." << endl;
+	std::cout << "Translation completed successfully." << std::endl;
     return 0;
 }
 

@@ -43,7 +43,7 @@
 //-------------------------------------------------------------------------
 
 
-void Sonic_CodeGenContext::indent ( ostream &o, const char *s )
+void Sonic_CodeGenContext::indent ( std::ostream &o, const char *s )
 {
     for ( int i=0; i < indentLevel; ++i )
         o << ' ';
@@ -55,7 +55,7 @@ void Sonic_CodeGenContext::indent ( ostream &o, const char *s )
 //-------------------------------------------------------------------------
 
 
-void SonicParse_Statement_Compound::generateCode ( ostream &o, Sonic_CodeGenContext &x )
+void SonicParse_Statement_Compound::generateCode ( std::ostream &o, Sonic_CodeGenContext &x )
 {
     if ( compound )
     {
@@ -78,7 +78,7 @@ void SonicParse_Statement_Compound::generateCode ( ostream &o, Sonic_CodeGenCont
 }
 
 
-void SonicParse_Statement_FunctionCall::generateCode ( ostream &o, Sonic_CodeGenContext &x )
+void SonicParse_Statement_FunctionCall::generateCode ( std::ostream &o, Sonic_CodeGenContext &x )
 {
     x.indent ( o );
     call->generateCode ( o, x );
@@ -89,7 +89,7 @@ void SonicParse_Statement_FunctionCall::generateCode ( ostream &o, Sonic_CodeGen
 }
 
 
-void SonicParse_Statement_If::generateCode ( ostream &o, Sonic_CodeGenContext &x )
+void SonicParse_Statement_If::generateCode ( std::ostream &o, Sonic_CodeGenContext &x )
 {
     x.indent ( o, "if ( " );
     condition->generateCode ( o, x );
@@ -121,7 +121,7 @@ void SonicParse_Statement_If::generateCode ( ostream &o, Sonic_CodeGenContext &x
 }
 
 
-void SonicParse_Statement_Repeat::generateCode ( ostream &o, Sonic_CodeGenContext &x )
+void SonicParse_Statement_Repeat::generateCode ( std::ostream &o, Sonic_CodeGenContext &x )
 {
     const int tag = (x.nextTempTag)++;
     char t[64];
@@ -145,7 +145,7 @@ void SonicParse_Statement_Repeat::generateCode ( ostream &o, Sonic_CodeGenContex
 }
 
 
-void SonicParse_Statement_While::generateCode ( ostream &o, Sonic_CodeGenContext &x )
+void SonicParse_Statement_While::generateCode ( std::ostream &o, Sonic_CodeGenContext &x )
 {
     x.indent ( o, "while ( " );
     condition->generateCode ( o, x );
@@ -164,7 +164,7 @@ void SonicParse_Statement_While::generateCode ( ostream &o, Sonic_CodeGenContext
 }
 
 
-void SonicParse_Statement_Return::generateCode ( ostream &o, Sonic_CodeGenContext &x )
+void SonicParse_Statement_Return::generateCode ( std::ostream &o, Sonic_CodeGenContext &x )
 {
     x.indent ( o, "return" );
 
@@ -178,7 +178,7 @@ void SonicParse_Statement_Return::generateCode ( ostream &o, Sonic_CodeGenContex
 }
 
 
-void SonicParse_Statement_Assignment::generateCode ( ostream &o, Sonic_CodeGenContext &x )
+void SonicParse_Statement_Assignment::generateCode ( std::ostream &o, Sonic_CodeGenContext &x )
 {
     if ( lvalue->queryIsWave() )
     {
@@ -394,7 +394,7 @@ void SonicParse_Statement_Assignment::generateCode ( ostream &o, Sonic_CodeGenCo
 }
 
 
-void SonicParse_Function::generatePrototype ( ostream &o, Sonic_CodeGenContext &x )
+void SonicParse_Function::generatePrototype ( std::ostream &o, Sonic_CodeGenContext &x )
 {
     switch ( returnType.queryTypeClass() )
     {
@@ -440,7 +440,7 @@ void SonicParse_Function::generatePrototype ( ostream &o, Sonic_CodeGenContext &
 }
 
 
-void SonicParse_Function::generateCode ( ostream &o, Sonic_CodeGenContext &x )
+void SonicParse_Function::generateCode ( std::ostream &o, Sonic_CodeGenContext &x )
 {
     SonicParse_Function *fsave = x.func;        // in case we ever have nested functions!
     x.func = this;
@@ -473,7 +473,7 @@ void SonicParse_Function::generateCode ( ostream &o, Sonic_CodeGenContext &x )
 }
 
 
-void SonicParse_VarDecl::generateCode ( ostream &o, Sonic_CodeGenContext &x )
+void SonicParse_VarDecl::generateCode ( std::ostream &o, Sonic_CodeGenContext &x )
 {
     switch ( type.queryTypeClass() )
     {
@@ -580,7 +580,7 @@ void SonicParse_VarDecl::generateCode ( ostream &o, Sonic_CodeGenContext &x )
 }
 
 
-void SonicParse_Expression_Vector::generateCode ( ostream &o, Sonic_CodeGenContext &x )
+void SonicParse_Expression_Vector::generateCode ( std::ostream &o, Sonic_CodeGenContext &x )
 {
     o << "{ ";
 
@@ -596,7 +596,7 @@ void SonicParse_Expression_Vector::generateCode ( ostream &o, Sonic_CodeGenConte
 
 
 void SonicParse_Expression_Vector::generatePreSampleLoopCode ( 
-    ostream &o, 
+    std::ostream &o, 
     Sonic_CodeGenContext &x )
 {
     x.channelValue = 0;
@@ -609,7 +609,7 @@ void SonicParse_Expression_Vector::generatePreSampleLoopCode (
 
 
 void SonicParse_Expression_Vector::generatePreChannelLoopCode ( 
-    ostream &o, 
+    std::ostream &o, 
     Sonic_CodeGenContext &x )
 {
     x.channelValue = 0;
@@ -621,7 +621,7 @@ void SonicParse_Expression_Vector::generatePreChannelLoopCode (
 }
 
 
-void SonicParse_Expression_BinaryBoolOp::generateCode ( ostream &o, Sonic_CodeGenContext &x )
+void SonicParse_Expression_BinaryBoolOp::generateCode ( std::ostream &o, Sonic_CodeGenContext &x )
 {
     bool paren = lchild->operatorPrecedence() < operatorPrecedence();
 
@@ -656,7 +656,7 @@ void SonicParse_Expression_BinaryBoolOp::generateCode ( ostream &o, Sonic_CodeGe
 
 
 void SonicParse_Expression_BinaryOp::generatePreSampleLoopCode ( 
-    ostream &o, 
+    std::ostream &o, 
     Sonic_CodeGenContext &x )
 {
     lchild->generatePreSampleLoopCode ( o, x );
@@ -665,7 +665,7 @@ void SonicParse_Expression_BinaryOp::generatePreSampleLoopCode (
 
 
 void SonicParse_Expression_BinaryOp::generatePreChannelLoopCode ( 
-    ostream &o, 
+    std::ostream &o, 
     Sonic_CodeGenContext &x )
 {
     lchild->generatePreChannelLoopCode ( o, x );
@@ -674,7 +674,7 @@ void SonicParse_Expression_BinaryOp::generatePreChannelLoopCode (
 
 
 void SonicParse_Expression_UnaryOp::generatePreSampleLoopCode ( 
-    ostream &o, 
+    std::ostream &o, 
     Sonic_CodeGenContext &x )
 {
     child->generatePreSampleLoopCode ( o, x );
@@ -682,14 +682,14 @@ void SonicParse_Expression_UnaryOp::generatePreSampleLoopCode (
 
 
 void SonicParse_Expression_UnaryOp::generatePreChannelLoopCode ( 
-    ostream &o, 
+    std::ostream &o, 
     Sonic_CodeGenContext &x )
 {
     child->generatePreChannelLoopCode ( o, x );
 }
 
 
-void SonicParse_Expression_BinaryMathOp::generateCode ( ostream &o, Sonic_CodeGenContext &x )
+void SonicParse_Expression_BinaryMathOp::generateCode ( std::ostream &o, Sonic_CodeGenContext &x )
 {
     bool paren = lchild->operatorPrecedence() < operatorPrecedence();
 
@@ -725,7 +725,7 @@ void SonicParse_Expression_BinaryMathOp::generateCode ( ostream &o, Sonic_CodeGe
 }
 
 
-void SonicParse_Expression_Mod::generateCode ( ostream &o, Sonic_CodeGenContext &x )
+void SonicParse_Expression_Mod::generateCode ( std::ostream &o, Sonic_CodeGenContext &x )
 {
     SonicType ltype = lchild->determineType();
     SonicType rtype = rchild->determineType();
@@ -743,7 +743,7 @@ void SonicParse_Expression_Mod::generateCode ( ostream &o, Sonic_CodeGenContext 
 }
 
 
-void SonicParse_Expression_Power::generateCode ( ostream &o, Sonic_CodeGenContext &x )
+void SonicParse_Expression_Power::generateCode ( std::ostream &o, Sonic_CodeGenContext &x )
 {
     o << "pow(double(";
     lchild->generateCode ( o, x );
@@ -753,7 +753,7 @@ void SonicParse_Expression_Power::generateCode ( ostream &o, Sonic_CodeGenContex
 }
 
 
-void SonicParse_Expression_OldData::generateCode ( ostream &o, Sonic_CodeGenContext &x )
+void SonicParse_Expression_OldData::generateCode ( std::ostream &o, Sonic_CodeGenContext &x )
 {
     if ( x.generatingComment )
     {
@@ -769,7 +769,7 @@ void SonicParse_Expression_OldData::generateCode ( ostream &o, Sonic_CodeGenCont
 }
 
 
-void SonicParse_Expression_WaveExpr::generateCode ( ostream &o, Sonic_CodeGenContext &x )
+void SonicParse_Expression_WaveExpr::generateCode ( std::ostream &o, Sonic_CodeGenContext &x )
 {
     if ( x.generatingComment )
     {
@@ -812,7 +812,7 @@ void SonicParse_Expression_WaveExpr::generateCode ( ostream &o, Sonic_CodeGenCon
 
 
 void SonicParse_Expression_WaveExpr::generatePreSampleLoopCode ( 
-    ostream &o, 
+    std::ostream &o, 
     Sonic_CodeGenContext &x )
 {
     bool isave = x.iAllowed;
@@ -826,7 +826,7 @@ void SonicParse_Expression_WaveExpr::generatePreSampleLoopCode (
 
 
 void SonicParse_Expression_WaveExpr::generatePreChannelLoopCode ( 
-    ostream &o, 
+    std::ostream &o, 
     Sonic_CodeGenContext &x )
 {
     bool isave = x.iAllowed;
@@ -839,7 +839,7 @@ void SonicParse_Expression_WaveExpr::generatePreChannelLoopCode (
 }
 
 
-void SonicParse_Expression_Constant::generateCode ( ostream &o, Sonic_CodeGenContext &x )
+void SonicParse_Expression_Constant::generateCode ( std::ostream &o, Sonic_CodeGenContext &x )
 {
     if ( type == STYPE_STRING )
         o << '"' << value.queryToken() << '"';
@@ -849,20 +849,20 @@ void SonicParse_Expression_Constant::generateCode ( ostream &o, Sonic_CodeGenCon
 
 
 void SonicParse_Expression_Constant::generatePreSampleLoopCode ( 
-    ostream &o, 
+    std::ostream &o, 
     Sonic_CodeGenContext &x )
 {
 }
 
 
 void SonicParse_Expression_Constant::generatePreChannelLoopCode ( 
-    ostream &o, 
+    std::ostream &o, 
     Sonic_CodeGenContext &x )
 {
 }
 
 
-void SonicParse_Expression_FunctionCall::generateCode ( ostream &o, Sonic_CodeGenContext &x )
+void SonicParse_Expression_FunctionCall::generateCode ( std::ostream &o, Sonic_CodeGenContext &x )
 {
     if ( !x.generatingComment )
     {
@@ -893,7 +893,7 @@ void SonicParse_Expression_FunctionCall::generateCode ( ostream &o, Sonic_CodeGe
 
 
 void SonicParse_Expression_FunctionCall::generatePreSampleLoopCode ( 
-    ostream &o, 
+    std::ostream &o, 
     Sonic_CodeGenContext &x )
 {
     if ( ftype == SFT_IMPORT )
@@ -920,7 +920,7 @@ void SonicParse_Expression_FunctionCall::generatePreSampleLoopCode (
 
 
 void SonicParse_Expression_FunctionCall::generatePreChannelLoopCode ( 
-    ostream &o, 
+    std::ostream &o, 
     Sonic_CodeGenContext &x )
 {
     for ( SonicParse_Expression *pp = parmList; pp; pp = pp->queryNext() )
@@ -928,7 +928,7 @@ void SonicParse_Expression_FunctionCall::generatePreChannelLoopCode (
 }
 
 
-void SonicParse_Expression_Builtin::generateCode ( ostream &o, Sonic_CodeGenContext &x )
+void SonicParse_Expression_Builtin::generateCode ( std::ostream &o, Sonic_CodeGenContext &x )
 {
     if ( x.generatingComment )
     {
@@ -976,7 +976,7 @@ void SonicParse_Expression_Builtin::generateCode ( ostream &o, Sonic_CodeGenCont
 }
 
 
-void SonicParse_Expression_Variable::generateCode ( ostream &o, Sonic_CodeGenContext &x )
+void SonicParse_Expression_Variable::generateCode ( std::ostream &o, Sonic_CodeGenContext &x )
 {
     if ( !x.generatingComment )
         o << LOCAL_SYMBOL_PREFIX;
@@ -995,7 +995,7 @@ SonicType SonicParse_Expression_WaveField::determineType() const
 
 
 
-void SonicParse_Expression_WaveField::generateCode ( ostream &o, Sonic_CodeGenContext &x )
+void SonicParse_Expression_WaveField::generateCode ( std::ostream &o, Sonic_CodeGenContext &x )
 {
     if ( x.generatingComment )
     {
@@ -1023,7 +1023,7 @@ void SonicParse_Expression_WaveField::generateCode ( ostream &o, Sonic_CodeGenCo
 }
 
 
-void SonicParse_Expression_UnaryOp::generateCode ( ostream &o, Sonic_CodeGenContext &x )
+void SonicParse_Expression_UnaryOp::generateCode ( std::ostream &o, Sonic_CodeGenContext &x )
 {
     o << op.queryToken();
     if ( child->operatorPrecedence() <= operatorPrecedence() )
@@ -1043,7 +1043,7 @@ void SonicParse_Expression_UnaryOp::generateCode ( ostream &o, Sonic_CodeGenCont
 
 
 void SonicParse_Expression_FFT::generatePreSampleLoopCode (
-    ostream &o,
+    std::ostream &o,
     Sonic_CodeGenContext &x )
 {
     input->generatePreSampleLoopCode ( o, x );
@@ -1058,7 +1058,7 @@ void SonicParse_Expression_FFT::generatePreSampleLoopCode (
 
 
 void SonicParse_Expression_FFT::generatePreChannelLoopCode ( 
-    ostream &o, 
+    std::ostream &o, 
     Sonic_CodeGenContext &x )
 {
     input->generatePreChannelLoopCode ( o, x );
@@ -1066,7 +1066,7 @@ void SonicParse_Expression_FFT::generatePreChannelLoopCode (
 
 
 void SonicParse_Expression_FFT::generateCode ( 
-    ostream &o, 
+    std::ostream &o, 
     Sonic_CodeGenContext &x )
 {
     if ( x.generatingComment )
@@ -1095,7 +1095,7 @@ void SonicParse_Expression_FFT::generateCode (
 
 
 void SonicParse_Expression_IIR::generatePreSampleLoopCode  ( 
-    ostream &o, 
+    std::ostream &o, 
     Sonic_CodeGenContext &x )
 {
     filterInput->generatePreSampleLoopCode ( o, x );
@@ -1182,7 +1182,7 @@ void SonicParse_Expression_IIR::generatePreSampleLoopCode  (
 
 
 void SonicParse_Expression_IIR::generatePreChannelLoopCode ( 
-    ostream &o, 
+    std::ostream &o, 
     Sonic_CodeGenContext &x )
 {
     filterInput->generatePreChannelLoopCode ( o, x );
@@ -1381,7 +1381,7 @@ void SonicParse_Expression_IIR::generatePreChannelLoopCode (
 
 
 void SonicParse_Expression_IIR::generateCode ( 
-    ostream &o, 
+    std::ostream &o, 
     Sonic_CodeGenContext &x )
 {
     SonicParse_Expression *ep = 0;
@@ -1424,7 +1424,7 @@ void SonicParse_Expression_IIR::generateCode (
 
 
 void SonicParse_Expression_Sawtooth::generatePreSampleLoopCode ( 
-    ostream &o, 
+    std::ostream &o, 
     Sonic_CodeGenContext &x )
 {
     channelDependent = isChannelDependent();
@@ -1479,7 +1479,7 @@ void SonicParse_Expression_Sawtooth::generatePreSampleLoopCode (
 
 
 void SonicParse_Expression_Sawtooth::generatePreChannelLoopCode ( 
-    ostream &o, 
+    std::ostream &o, 
     Sonic_CodeGenContext &x )
 {
     int channelSave = x.channelValue;
@@ -1539,7 +1539,7 @@ void SonicParse_Expression_Sawtooth::generatePreChannelLoopCode (
 
 
 void SonicParse_Expression_Sawtooth::generateCode ( 
-    ostream &o, 
+    std::ostream &o, 
     Sonic_CodeGenContext &x )
 {
     if ( x.generatingComment )
@@ -1562,7 +1562,7 @@ void SonicParse_Expression_Sawtooth::generateCode (
 
 
 void SonicParse_Expression_Sinewave::generatePreSampleLoopCode  ( 
-    ostream &o, 
+    std::ostream &o, 
     Sonic_CodeGenContext &x )
 {
     channelDependent = isChannelDependent();
@@ -1636,7 +1636,7 @@ void SonicParse_Expression_Sinewave::generatePreSampleLoopCode  (
 
 
 void SonicParse_Expression_Sinewave::generatePreChannelLoopCode ( 
-    ostream &o, 
+    std::ostream &o, 
     Sonic_CodeGenContext &x )
 {
     bool csave = x.cAllowed;
@@ -1682,7 +1682,7 @@ void SonicParse_Expression_Sinewave::generatePreChannelLoopCode (
 
 
 void SonicParse_Expression_Sinewave::generateCode ( 
-    ostream &o, 
+    std::ostream &o, 
     Sonic_CodeGenContext &x )
 {
     if ( x.generatingComment )
