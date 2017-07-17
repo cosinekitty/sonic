@@ -371,7 +371,7 @@ void SonicParse_Program::generateCode()
     o << "// This file created: " << ctime(&now) << "\n";
     o << "// Standard includes...\n";
     o << "#include <stdio.h>\n";
-    o << "#include <iostream.h>\n";
+    o << "#include <iostream>\n";
     o << "#include <stdlib.h>\n";
     o << "#include <string.h>\n";
     o << "#include <math.h>\n";
