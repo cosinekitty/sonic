@@ -1118,7 +1118,7 @@ void SonicParse_Expression_IIR::generatePreSampleLoopCode  (
     x.popIndent();
 
     int yCoeffCount = 0;
-    for ( ep = yCoeffList; ep; ep = ep->queryNext() )
+    for ( SonicParse_Expression * ep = yCoeffList; ep; ep = ep->queryNext() )
         ++yCoeffCount;
 
     if ( yCoeffCount > 0 )
@@ -1127,7 +1127,7 @@ void SonicParse_Expression_IIR::generatePreSampleLoopCode  (
         o << TEMPORARY_PREFIX << (t_yCoeff = (x.nextTempTag)++) << "[] = {    // iir y-coefficients\n";
         x.pushIndent();
 
-        for ( ep = yCoeffList; ep; ep = ep->queryNext() )
+        for ( SonicParse_Expression *ep = yCoeffList; ep; ep = ep->queryNext() )
         {
             x.indent ( o );
             ep->generateCode ( o, x );
@@ -1157,7 +1157,7 @@ void SonicParse_Expression_IIR::generatePreSampleLoopCode  (
         {
             x.indent ( o, "double " );
             o << TEMPORARY_PREFIX << (t_yBuffer[c] = (x.nextTempTag)++) << "[] = { ";
-            for ( k=0; k < yCoeffCount; ++k )
+            for ( int k=0; k < yCoeffCount; ++k )
             {
                 if ( k > 0 )
                     o << ", ";
@@ -1192,7 +1192,7 @@ void SonicParse_Expression_IIR::generatePreChannelLoopCode (
         ++xCoeffCount;
 
     int yCoeffCount = 0;
-    for ( ep = yCoeffList; ep; ep = ep->queryNext() )
+    for ( SonicParse_Expression *ep = yCoeffList; ep; ep = ep->queryNext() )
         ++yCoeffCount;
 
     char xIndex [16];

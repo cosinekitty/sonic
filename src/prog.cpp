@@ -470,7 +470,7 @@ void SonicParse_Program::genMain ( std::ostream &o, Sonic_CodeGenContext &x )
     // generate code to extract program arguments from argv, argc...
 
     int argc = 0;
-    for ( pp = programBody->queryParmList(); pp; pp = pp->queryNext() )
+    for ( SonicParse_VarDecl *pp = programBody->queryParmList(); pp; pp = pp->queryNext() )
     {
         ++argc;
         x.indent ( o );
@@ -518,7 +518,7 @@ void SonicParse_Program::genMain ( std::ostream &o, Sonic_CodeGenContext &x )
     x.indent ( o );
     o << FUNCTION_PREFIX << programBody->queryName().queryToken() << " ( ";
 
-    for ( pp = programBody->queryParmList(); pp; pp = pp->queryNext() )
+    for ( SonicParse_VarDecl *pp = programBody->queryParmList(); pp; pp = pp->queryNext() )
     {
         o << LOCAL_SYMBOL_PREFIX << pp->queryName().queryToken();
 
@@ -531,7 +531,7 @@ void SonicParse_Program::genMain ( std::ostream &o, Sonic_CodeGenContext &x )
     // generate code to convert all float files to permanent WAV files...
 
     argc = 0;
-    for ( pp = programBody->queryParmList(); pp; pp = pp->queryNext() )
+    for ( SonicParse_VarDecl *pp = programBody->queryParmList(); pp; pp = pp->queryNext() )
     {
         ++argc;
         if ( pp->queryType() == STYPE_WAVE )
