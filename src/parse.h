@@ -6,6 +6,27 @@
 
     Revision history:
 
+1998 November 9 [Don Cross]
+    Bug fix: made 'functionBodyTail' be a member of 
+    class SonicParse_Program instead of just a local variable in
+    SonicParse_Program::parse().  This is now necessary because
+    the parse method can be called multiple times to merge several
+    source modules into a single program.  Without this bug fix,
+    all the functions are forgotten on each source module!
+    (I'm surprised I didn't notice this before now!)
+
+1998 October 1 [Don Cross]
+    Now allow '?' to be first array dimension in function parameters.
+
+1998 September 30 [Don Cross]
+    Added a 'for' loop construct.
+
+1998 September 28 [Don Cross]
+    Added support for array types.  This required adding the new class 
+    SonicParseContext, so that the code could determine at parse time
+    whether a symbol preceeding a '[' was a wave variable or an array
+    variable.
+
 1998 September 23 [Don Cross]
     Added support for passing function arguments by reference.
     Adding 'fft' pseudo-function.
@@ -45,8 +66,8 @@
 #ifndef __ddc_sonic_parse_h
 #define __ddc_sonic_parse_h
 
-const char * const SONIC_VERSION = "0.903 (beta)";
-const char * const SONIC_RELEASE_DATE = "26 September 1998";
+const char * const SONIC_VERSION = "0.907";
+const char * const SONIC_RELEASE_DATE = "10 November 1998";
 
 class ostream;
 
@@ -68,6 +89,7 @@ public:
     static const SonicToken & GetCurrentProgramName();
 
     void parse ( SonicScanner & );
+    void validate();
     void generateCode();
 
     SonicParse_Function *queryProgramBody() const { return programBody; }
@@ -101,7 +123,6 @@ private:
     void genMain ( ostream &, Sonic_CodeGenContext & );
     void genProgramFunction ( ostream &, Sonic_CodeGenContext & );
     void genFunctions ( ostream &, Sonic_CodeGenContext & );
-    void validate();
     static void SaveCurrentProgramName ( const SonicToken &name );
 
 private:
@@ -116,6 +137,7 @@ private:
 
     SonicParse_Function *programBody;
     SonicParse_Function *functionBodyList;
+    SonicParse_Function *functionBodyTail;
     SonicParse_Function *importList;
     SonicParse_VarDecl  *globalVars;
 
@@ -126,15 +148,19 @@ private:
 enum SonicTypeClass
 {
     STYPE_UNDEFINED,
-    STYPE_VOID,     // used only for functions which do not return a value
+    STYPE_VOID,      // used only for functions which do not return a value
     STYPE_INTEGER,
     STYPE_REAL,
     STYPE_BOOLEAN,
     STYPE_WAVE,
     STYPE_STRING,
     STYPE_VECTOR,
-    STYPE_IMPORT    // class written in C++ and imported into Sonic program
+    STYPE_IMPORT,    // class written in C++ and imported into Sonic program
+    STYPE_ARRAY
 };
+
+
+const MAX_SONIC_ARRAY_DIMENSIONS = 16;
 
 
 class SonicType
@@ -143,14 +169,26 @@ public:
     SonicType ( SonicTypeClass _tclass ):
         tclass ( _tclass ),
         name ( 0 ),
-        referenceFlag ( false )
-        {}
+        referenceFlag ( false ),
+        arrayElementClass ( STYPE_UNDEFINED ),
+        numDimensions ( 0 )
+        { initDimArray(); }
 
     SonicType ( const SonicToken *importName ):
         tclass ( STYPE_IMPORT ),
         name ( importName ),
-        referenceFlag ( false )
-        {}
+        referenceFlag ( false ),
+        arrayElementClass ( STYPE_UNDEFINED ),
+        numDimensions ( 0 )
+        { initDimArray(); }
+
+    SonicType ( int _numDimensions, const int _dimArray[], SonicTypeClass _elemClass ):
+        tclass ( STYPE_ARRAY ),
+        name ( 0 ),
+        referenceFlag ( false ),
+        arrayElementClass ( _elemClass ),
+        numDimensions ( _numDimensions )
+        { copyDimArray ( _dimArray ); }
 
     bool operator== ( const SonicType & ) const;
     bool operator!= ( const SonicType &other ) const { return !(*this == other); }
@@ -162,10 +200,21 @@ public:
     SonicTypeClass queryTypeClass() const { return tclass; }
     const SonicToken *queryImportName() const { return name; }
 
+    int queryNumDimensions() const { return numDimensions; }
+    const int *queryDimensionArray() const { return arrayDim; }
+    SonicTypeClass queryElementType() const { return arrayElementClass; }
+
+private:
+    void initDimArray();
+    void copyDimArray ( const int _dimArray[] );
+
 private:
     SonicTypeClass  tclass;
     const SonicToken *name;     // used for STYPE_IMPORT
     bool referenceFlag;
+    int  numDimensions;
+    int  arrayDim [MAX_SONIC_ARRAY_DIMENSIONS];
+    SonicTypeClass  arrayElementClass;
 };
 
 
@@ -185,7 +234,8 @@ enum SonicExpressionType
     ETYPE_SAWTOOTH,
     ETYPE_FFT,
     ETYPE_IIR,
-    ETYPE_OLD_DATA          // '$' - represents previous value of lvalue[c,i]
+    ETYPE_OLD_DATA,          // '$' - represents previous value of lvalue[c,i]
+    ETYPE_ARRAY_SUBSCRIPT
 };
 
 
@@ -196,13 +246,32 @@ enum SonicStatementType
     STMT_FUNCCALL,
     STMT_IF,
     STMT_WHILE,
+    STMT_FOR,
     STMT_REPEAT,
     STMT_COMPOUND,
     STMT_RETURN
 };
 
 
-SonicType ParseType ( SonicScanner &, const SonicParse_Program & );
+struct SonicParseContext
+{
+    SonicParseContext ( SonicParse_Program &_prog ):
+        prog ( _prog ),
+        localVars ( 0 ),
+        localParms ( 0 ),
+        insideFuncParms ( false )
+        {}
+
+    const SonicParse_VarDecl *findVar ( const SonicToken &name ) const;
+
+    SonicParse_Program &prog;
+    const SonicParse_VarDecl *localVars;
+    const SonicParse_VarDecl *localParms;
+    bool insideFuncParms;
+};
+
+
+SonicType ParseType ( SonicScanner &, const SonicParseContext & );
 bool CanConvertTo ( SonicType source, SonicType target );
 
 
@@ -223,10 +292,10 @@ public:
 
     virtual ~SonicParse_Expression();
 
-    static SonicParse_Expression *Parse ( SonicScanner & );
-    static SonicParse_Expression *Parse_b0 ( SonicScanner & );
-    static SonicParse_Expression *Parse_term ( SonicScanner & );
-    static SonicParse_Expression *Parse_t3 ( SonicScanner & );
+    static SonicParse_Expression *Parse ( SonicScanner &, SonicParseContext & );
+    static SonicParse_Expression *Parse_b0 ( SonicScanner &, SonicParseContext & );
+    static SonicParse_Expression *Parse_term ( SonicScanner &, SonicParseContext & );
+    static SonicParse_Expression *Parse_t3 ( SonicScanner &, SonicParseContext & );
 
     virtual void visit ( Sonic_ExpressionVisitor &v ) const  { v.visitHook(this); }
     static void VisitList ( Sonic_ExpressionVisitor &v, SonicParse_Expression *list );
@@ -261,13 +330,14 @@ public:
         {}
 
 protected:
-    static SonicParse_Expression *Parse_b1 ( SonicScanner & );
-    static SonicParse_Expression *Parse_b2 ( SonicScanner & );
-    static SonicParse_Expression *Parse_t1 ( SonicScanner & );
-    static SonicParse_Expression *Parse_t2 ( SonicScanner & );
+    static SonicParse_Expression *Parse_b1 ( SonicScanner &, SonicParseContext & );
+    static SonicParse_Expression *Parse_b2 ( SonicScanner &, SonicParseContext & );
+    static SonicParse_Expression *Parse_t1 ( SonicScanner &, SonicParseContext & );
+    static SonicParse_Expression *Parse_t2 ( SonicScanner &, SonicParseContext & );
 
 protected:
     friend class SonicParse_VarDecl;
+    friend class SonicParse_Statement;
     SonicParse_Expression *next;
     SonicExpressionType exprType;
 };
@@ -354,6 +424,47 @@ private:
     SonicToken waveName;
     SonicParse_Expression *cterm;
     SonicParse_Expression *iterm;
+};
+
+
+class SonicParse_Expression_ArraySubscript: public SonicParse_Expression
+{
+public:
+    SonicParse_Expression_ArraySubscript (
+        const SonicToken &_arrayVarName,
+        SonicParse_Expression *_indexList ):
+            SonicParse_Expression ( ETYPE_ARRAY_SUBSCRIPT ),
+            arrayVarName ( _arrayVarName ),
+            indexList ( _indexList ),
+            elementType ( STYPE_UNDEFINED )
+            {}
+
+    ~SonicParse_Expression_ArraySubscript();
+
+    virtual int operatorPrecedence() const { return 100; }
+    virtual SonicType determineType() const { return elementType; }
+    virtual void validate ( SonicParse_Program &, SonicParse_Function * );
+    virtual const SonicToken & getFirstToken() const { return arrayVarName; }
+    virtual void generateCode ( ostream &, Sonic_CodeGenContext & );
+    virtual void generatePreSampleLoopCode  ( ostream &, Sonic_CodeGenContext & );
+    virtual void generatePreChannelLoopCode ( ostream &, Sonic_CodeGenContext & );
+
+    virtual void getWaveSymbolList ( 
+        const SonicToken *waveSymbol[], 
+        int maxWaveSymbols,
+        int &numSoFar,
+        int &numOccurrences );
+
+    virtual void visit ( Sonic_ExpressionVisitor &v ) const
+    {
+        v.visitHook (this);
+        SonicParse_Expression::VisitList ( v, indexList );
+    }
+
+private:
+    SonicToken  arrayVarName;
+    SonicParse_Expression  *indexList;
+    SonicType elementType;
 };
 
 
@@ -1173,7 +1284,8 @@ public:
         const SonicToken &_name,
         SonicType _type,
         SonicParse_Expression *_init,       // NULL if no explicit initializer
-        bool _isGlobal );                   // NULL if global variable
+        bool _isGlobal,                     // NULL if global variable
+        bool _isFunctionParm );
 
     ~SonicParse_VarDecl();
 
@@ -1189,11 +1301,12 @@ public:
 
     static void ParseVarList ( 
         SonicScanner &,
+        SonicParseContext &,
         SonicParse_VarDecl * &varList,
-        SonicParse_Program &prog,
         bool isGlobal );
 
     bool queryIsGlobal() const { return isGlobal; }
+    bool queryIsFunctionParm() const { return isFunctionParm; }
 
 private:
     friend class SonicParse_Function;
@@ -1204,8 +1317,11 @@ private:
     SonicParse_Expression  *init;
     bool resetFlag;     // used only for import function objects (so reset() generated only once)
     bool isGlobal;
+    bool isFunctionParm;
 };
 
+
+class SonicParse_Statement_Assignment;
 
 class SonicParse_Statement
 {
@@ -1223,12 +1339,16 @@ public:
     virtual SonicStatementType queryType() const = 0;
     virtual void validate ( SonicParse_Program &, SonicParse_Function * ) = 0;
 
-    static SonicParse_Statement *Parse ( SonicScanner & );
+    static SonicParse_Statement *Parse ( SonicScanner &, SonicParseContext & );
     virtual void generateCode ( ostream &, Sonic_CodeGenContext & ) = 0;
     virtual bool needsBraces() const { return false; }
 
 protected:
     SonicParse_Statement *queryNext() const { return next; }
+
+    static SonicParse_Statement_Assignment *ParseAssignment ( 
+        SonicScanner &,
+        SonicParseContext & );
 
 private:
     friend class SonicParse_Function;
@@ -1372,6 +1492,37 @@ private:
 };
 
 
+class SonicParse_Statement_Assignment;
+
+class SonicParse_Statement_For: public SonicParse_Statement
+{
+public:
+    SonicParse_Statement_For (
+        SonicParse_Statement   *_init,
+        SonicParse_Expression  *_condition,
+        SonicParse_Statement   *_update,
+        SonicParse_Statement   *_loop ):
+            init ( _init ),
+            condition ( _condition ),
+            update ( _update ),
+            loop ( _loop )
+            {}
+
+    ~SonicParse_Statement_For();
+
+    virtual SonicStatementType queryType() const { return STMT_FOR; }
+    virtual void validate ( SonicParse_Program &, SonicParse_Function * );
+    virtual void generateCode ( ostream &, Sonic_CodeGenContext & );
+    virtual bool needsBraces() const { return true; }
+
+private:
+    SonicParse_Statement   *init;
+    SonicParse_Expression  *condition;
+    SonicParse_Statement   *update;
+    SonicParse_Statement   *loop;
+};
+
+
 class SonicParse_Statement_While: public SonicParse_Statement
 {
 public:
@@ -1443,10 +1594,12 @@ public:
     SonicParse_Lvalue (
         const SonicToken &_varName,
         bool _isWave,
-        SonicParse_Expression *_sampleLimit ):
+        SonicParse_Expression *_sampleLimit,
+        SonicParse_Expression *_indexList ):
             varName ( _varName ),
             isWave ( _isWave ),
-            sampleLimit ( _sampleLimit )
+            sampleLimit ( _sampleLimit ),
+            indexList ( _indexList )
             {}
 
     virtual ~SonicParse_Lvalue()
@@ -1456,11 +1609,18 @@ public:
             delete sampleLimit;
             sampleLimit = 0;
         }
+
+        if ( indexList )
+        {
+            delete indexList;
+            indexList = 0;
+        }
     }
 
     const SonicToken &queryVarName() const { return varName; }
     bool queryIsWave() const { return isWave; }
     SonicParse_Expression *querySampleLimit() const { return sampleLimit; }
+    SonicParse_Expression *queryIndexList() const { return indexList; }
     void validate ( SonicParse_Program &, SonicParse_Function * );
     SonicType determineType ( SonicParse_Program &, SonicParse_Function * ) const;
 
@@ -1468,6 +1628,7 @@ private:
     SonicToken varName;
     bool isWave;
     SonicParse_Expression *sampleLimit;
+    SonicParse_Expression *indexList;
 };
 
 
@@ -1501,7 +1662,12 @@ public:
     virtual SonicStatementType queryType() const { return STMT_ASSIGNMENT; }
     virtual void validate ( SonicParse_Program &, SonicParse_Function * );
     virtual void generateCode ( ostream &, Sonic_CodeGenContext & );
-    virtual bool needsBraces() const { return lvalue->queryIsWave(); }
+    virtual bool needsBraces() const 
+    { 
+        return 
+            lvalue->queryIsWave() || 
+            rvalue->determineType() == STYPE_ARRAY; 
+    }
 
 private:
     SonicToken op;
@@ -1524,7 +1690,7 @@ public:
 
     ~SonicParse_Function();
 
-    static SonicParse_Function *Parse ( SonicScanner &, SonicParse_Program & );
+    static SonicParse_Function *Parse ( SonicScanner &, SonicParseContext & );
     const SonicToken &queryName() const { return name; }
     bool queryIsProgramBody() const { return isProgramBody; }
     void validate ( SonicParse_Program & );

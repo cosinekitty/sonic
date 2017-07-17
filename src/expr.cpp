@@ -8,6 +8,9 @@
 
 Revision history:
 
+1998 September 28 [Don Cross]
+    Adding support for arrays.
+
 1998 September 23 [Don Cross]
     Added parse code for new 'fft' pseudo-function.
 
@@ -33,6 +36,26 @@ SonicParse_Expression::~SonicParse_Expression()
 }
 
 
+void SonicType::initDimArray()
+{
+    for ( int i=0; i < MAX_SONIC_ARRAY_DIMENSIONS; ++i )
+        arrayDim[i] = 0;
+}
+
+
+void SonicType::copyDimArray ( const int _dimArray[] )
+{
+    if ( numDimensions < 0 || numDimensions > MAX_SONIC_ARRAY_DIMENSIONS )
+        throw SonicParseException ( "Invalid number of array dimensions" );
+
+    for ( int i=0; i < numDimensions; ++i )
+        arrayDim[i] = _dimArray[i];
+
+    for ( ; i < MAX_SONIC_ARRAY_DIMENSIONS; ++i )
+        arrayDim[i] = 0;
+}
+
+
 bool SonicType::operator== ( const SonicType &other ) const
 {
     if ( tclass != other.tclass )
@@ -40,6 +63,21 @@ bool SonicType::operator== ( const SonicType &other ) const
 
     if ( tclass == STYPE_IMPORT )
         return *name == *other.name;
+
+    if ( tclass == STYPE_ARRAY )
+    {
+        if ( arrayElementClass != other.arrayElementClass )
+            return false;
+
+        if ( numDimensions != other.numDimensions )
+            return false;
+
+        for ( int i=0; i < numDimensions; ++i )
+        {
+            if ( arrayDim[i] != other.arrayDim[i] )
+                return false;
+        }
+    }
 
     return true;
 }
@@ -61,6 +99,35 @@ bool CanConvertTo ( SonicType source, SonicType target )
 
     if ( target == STYPE_VECTOR )
         return source == STYPE_VECTOR || source == STYPE_REAL || source == STYPE_INTEGER;
+
+    if ( target == STYPE_ARRAY )
+    {
+        if ( source != STYPE_ARRAY )
+            return false;
+
+        const int numDimensions = target.queryNumDimensions();
+        if ( numDimensions != source.queryNumDimensions() )
+            return false;
+
+        if ( source.queryElementType() != target.queryElementType() )
+            return false;
+
+        const int *sdim = source.queryDimensionArray();
+        const int *tdim = target.queryDimensionArray();
+
+        // In conversion checking, the first array dimensions do not need to match,
+        // but all remaining dimensions do.  This is the only requirement for
+        // generating valid C++ for passing parameters to functions.  Calling code
+        // needs to be aware of this special case.
+
+        for ( int i=1; i < numDimensions; ++i )
+        {
+            if ( sdim[i] != tdim[i] )
+                return false;
+        }
+
+        return true;
+    }
 
     if ( target == source )
         return true;
@@ -127,7 +194,9 @@ void SonicParse_Expression::VisitList (
 }
 
 
-SonicParse_Expression *SonicParse_Expression::Parse ( SonicScanner &scanner )
+SonicParse_Expression *SonicParse_Expression::Parse ( 
+    SonicScanner &scanner, 
+    SonicParseContext &px )
 {
     SonicParse_Expression *expr = 0;
 
@@ -139,7 +208,7 @@ SonicParse_Expression *SonicParse_Expression::Parse ( SonicScanner &scanner )
         SonicParse_Expression *vectorExprList=0, *vectorExprTail=0;
         for(;;)
         {
-            SonicParse_Expression *newVectorExpr = Parse_b0 (scanner);
+            SonicParse_Expression *newVectorExpr = Parse_b0 (scanner, px);
             if ( vectorExprTail )
                 vectorExprTail = vectorExprTail->next = newVectorExpr;
             else
@@ -157,7 +226,7 @@ SonicParse_Expression *SonicParse_Expression::Parse ( SonicScanner &scanner )
     else
     {
         scanner.pushToken (t);
-        expr = Parse_b0 (scanner);
+        expr = Parse_b0 (scanner, px);
     }
 
     if ( !expr )
@@ -167,15 +236,17 @@ SonicParse_Expression *SonicParse_Expression::Parse ( SonicScanner &scanner )
 }
 
 
-SonicParse_Expression *SonicParse_Expression::Parse_b0 ( SonicScanner &scanner )
+SonicParse_Expression *SonicParse_Expression::Parse_b0 ( 
+    SonicScanner &scanner, 
+    SonicParseContext &px )
 {
-    SonicParse_Expression *expr = Parse_b1 (scanner);
+    SonicParse_Expression *expr = Parse_b1 (scanner, px);
     SonicToken t;
     scanner.getToken ( t );
     while ( t == "|" )
     {
         SonicParse_Expression *lchild = expr;
-        SonicParse_Expression *rchild = Parse_b1 (scanner);
+        SonicParse_Expression *rchild = Parse_b1 (scanner, px);
         expr = new SonicParse_Expression_Or ( t, lchild, rchild );
         scanner.getToken ( t );
     }
@@ -185,15 +256,17 @@ SonicParse_Expression *SonicParse_Expression::Parse_b0 ( SonicScanner &scanner )
 }
 
 
-SonicParse_Expression *SonicParse_Expression::Parse_b1 ( SonicScanner &scanner )
+SonicParse_Expression *SonicParse_Expression::Parse_b1 ( 
+    SonicScanner &scanner, 
+    SonicParseContext &px )
 {
-    SonicParse_Expression *expr = Parse_b2 (scanner);
+    SonicParse_Expression *expr = Parse_b2 (scanner, px);
     SonicToken t;
     scanner.getToken ( t );
     while ( t == "&" )
     {
         SonicParse_Expression *lchild = expr;
-        SonicParse_Expression *rchild = Parse_b2 (scanner);
+        SonicParse_Expression *rchild = Parse_b2 (scanner, px);
         expr = new SonicParse_Expression_And ( t, lchild, rchild );
         scanner.getToken ( t );
     }
@@ -203,15 +276,17 @@ SonicParse_Expression *SonicParse_Expression::Parse_b1 ( SonicScanner &scanner )
 }
 
 
-SonicParse_Expression *SonicParse_Expression::Parse_b2 ( SonicScanner &scanner )
+SonicParse_Expression *SonicParse_Expression::Parse_b2 ( 
+    SonicScanner &scanner, 
+    SonicParseContext &px )
 {
-    SonicParse_Expression *expr = Parse_term (scanner);
+    SonicParse_Expression *expr = Parse_term (scanner, px);
     SonicToken t;
     scanner.getToken ( t );
     if ( t=="==" || t=="<" || t=="<=" || t==">" || t==">=" || t=="!=" || t=="<>" )
     {
         SonicParse_Expression *lchild = expr;
-        SonicParse_Expression *rchild = Parse_term (scanner);
+        SonicParse_Expression *rchild = Parse_term (scanner, px);
 
         if ( t == "==" )
             expr = new SonicParse_Expression_Equal ( t, lchild, rchild );
@@ -235,9 +310,11 @@ SonicParse_Expression *SonicParse_Expression::Parse_b2 ( SonicScanner &scanner )
 }
 
 
-SonicParse_Expression *SonicParse_Expression::Parse_term ( SonicScanner &scanner )
+SonicParse_Expression *SonicParse_Expression::Parse_term ( 
+    SonicScanner &scanner, 
+    SonicParseContext &px )
 {
-    SonicParse_Expression *expr = Parse_t1 (scanner);
+    SonicParse_Expression *expr = Parse_t1 (scanner, px);
     SonicToken t;
     for(;;)
     {
@@ -245,7 +322,7 @@ SonicParse_Expression *SonicParse_Expression::Parse_term ( SonicScanner &scanner
         if ( t=="+" || t=="-" )
         {
             SonicParse_Expression *lchild = expr;
-            SonicParse_Expression *rchild = Parse_t1 (scanner);
+            SonicParse_Expression *rchild = Parse_t1 (scanner, px);
             if ( t == "+" )
                 expr = new SonicParse_Expression_Add ( t, lchild, rchild );
             else
@@ -262,9 +339,11 @@ SonicParse_Expression *SonicParse_Expression::Parse_term ( SonicScanner &scanner
 }
 
 
-SonicParse_Expression *SonicParse_Expression::Parse_t1 ( SonicScanner &scanner )
+SonicParse_Expression *SonicParse_Expression::Parse_t1 ( 
+    SonicScanner &scanner, 
+    SonicParseContext &px )
 {
-    SonicParse_Expression *expr = Parse_t2 (scanner);
+    SonicParse_Expression *expr = Parse_t2 (scanner, px);
     SonicToken t;
     for(;;)
     {
@@ -272,7 +351,7 @@ SonicParse_Expression *SonicParse_Expression::Parse_t1 ( SonicScanner &scanner )
         if ( t=="*" || t=="/" || t=="%" )
         {
             SonicParse_Expression *lchild = expr;
-            SonicParse_Expression *rchild = Parse_t2 (scanner);
+            SonicParse_Expression *rchild = Parse_t2 (scanner, px);
             if ( t == "*" )
                 expr = new SonicParse_Expression_Multiply ( t, lchild, rchild );
             else if ( t == "/" )
@@ -291,15 +370,17 @@ SonicParse_Expression *SonicParse_Expression::Parse_t1 ( SonicScanner &scanner )
 }
 
 
-SonicParse_Expression *SonicParse_Expression::Parse_t2 ( SonicScanner &scanner )
+SonicParse_Expression *SonicParse_Expression::Parse_t2 ( 
+    SonicScanner &scanner, 
+    SonicParseContext &px )
 {
-    SonicParse_Expression *expr = Parse_t3 (scanner);
+    SonicParse_Expression *expr = Parse_t3 (scanner, px);
     SonicToken t;
     scanner.getToken ( t );
     if ( t == "^" )
     {
         SonicParse_Expression *lchild = expr;
-        SonicParse_Expression *rchild = Parse_t2 (scanner);
+        SonicParse_Expression *rchild = Parse_t2 (scanner, px);
         expr = new SonicParse_Expression_Power ( t, lchild, rchild );
     }
     else
@@ -389,7 +470,9 @@ static bool SearchIntrinsicTable (
 
 
 
-SonicParse_Expression *SonicParse_Expression::Parse_t3 ( SonicScanner &scanner )
+SonicParse_Expression *SonicParse_Expression::Parse_t3 ( 
+    SonicScanner &scanner, 
+    SonicParseContext &px )
 {
     SonicParse_Expression *expr = 0;
 
@@ -419,11 +502,39 @@ SonicParse_Expression *SonicParse_Expression::Parse_t3 ( SonicScanner &scanner )
         scanner.getToken ( t2 );
         if ( t2 == "[" )
         {
-            SonicParse_Expression *cterm = Parse_term (scanner);
-            scanner.scanExpected ( "," );
-            SonicParse_Expression *iterm = Parse_term (scanner);
-            scanner.scanExpected ( "]" );
-            expr = new SonicParse_Expression_WaveExpr ( t, cterm, iterm );
+            // Figure out whether this is an array expression or a wave expression.
+            const SonicParse_VarDecl *decl = px.findVar(t);
+            const SonicType &varType = decl->queryType();
+            if ( varType == STYPE_ARRAY )
+            {
+                SonicParse_Expression *indexList=0, *indexTail=0;
+                SonicToken punct;
+                for(;;)
+                {
+                    SonicParse_Expression *newIndex = Parse_term (scanner, px);
+                    if ( indexList )
+                        indexTail = indexTail->next = newIndex;
+                    else
+                        indexList = indexTail = newIndex;
+                    scanner.getToken ( punct );
+                    if ( punct == "]" )
+                        break;
+                    else if ( punct != "," )
+                        throw SonicParseException ( "expected ',' or ']'" );
+                }
+
+                expr = new SonicParse_Expression_ArraySubscript ( t, indexList );
+            }
+            else if ( varType == STYPE_WAVE )
+            {
+                SonicParse_Expression *cterm = Parse_term (scanner, px);
+                scanner.scanExpected ( "," );
+                SonicParse_Expression *iterm = Parse_term (scanner, px);
+                scanner.scanExpected ( "]" );
+                expr = new SonicParse_Expression_WaveExpr ( t, cterm, iterm );
+            }
+            else
+                throw SonicParseException ( "'[' may appear only after array or wave variable", t2 );
         }
         else if ( t2 == "." )
         {
@@ -438,25 +549,25 @@ SonicParse_Expression *SonicParse_Expression::Parse_t3 ( SonicScanner &scanner )
             if ( t == "sinewave" )
             {
                 // scan 3 terms: amplitude, frequency, phase
-                SonicParse_Expression *amplitude = Parse_term (scanner);
+                SonicParse_Expression *amplitude = Parse_term (scanner, px);
                 scanner.scanExpected ( "," );
-                SonicParse_Expression *frequency = Parse_term (scanner);
+                SonicParse_Expression *frequency = Parse_term (scanner, px);
                 scanner.scanExpected ( "," );
-                SonicParse_Expression *phase = Parse_term (scanner);
+                SonicParse_Expression *phase = Parse_term (scanner, px);
                 scanner.scanExpected ( ")" );
                 expr = new SonicParse_Expression_Sinewave ( t, amplitude, frequency, phase );
             }
             else if ( t == "sawtooth" )
             {
-                SonicParse_Expression *frequency = Parse_term (scanner);
+                SonicParse_Expression *frequency = Parse_term (scanner, px);
                 scanner.scanExpected ( ")" );
                 expr = new SonicParse_Expression_Sawtooth ( t, frequency );
             }
             else if ( t == "fft" )
             {
-                SonicParse_Expression *input = Parse_term (scanner);
+                SonicParse_Expression *input = Parse_term (scanner, px);
                 scanner.scanExpected ( "," );
-                SonicParse_Expression *fftSize = Parse_term (scanner);
+                SonicParse_Expression *fftSize = Parse_term (scanner, px);
                 scanner.scanExpected ( "," );
                 SonicToken funcName;
 
@@ -465,7 +576,7 @@ SonicParse_Expression *SonicParse_Expression::Parse_t3 ( SonicScanner &scanner )
                     throw SonicParseException ( "third parameter to 'fft' must be transfer function name", funcName );
 
                 scanner.scanExpected ( "," );
-                SonicParse_Expression *freqShift = Parse_term (scanner);
+                SonicParse_Expression *freqShift = Parse_term (scanner, px);
                 scanner.scanExpected ( ")" );
 
                 expr = new SonicParse_Expression_FFT (
@@ -483,7 +594,7 @@ SonicParse_Expression *SonicParse_Expression::Parse_t3 ( SonicScanner &scanner )
                 SonicParse_Expression *xCoeffList=0, *xCoeffTail=0;
                 for(;;)
                 {
-                    SonicParse_Expression *xCoeff = SonicParse_Expression::Parse_term (scanner);
+                    SonicParse_Expression *xCoeff = SonicParse_Expression::Parse_term (scanner, px);
                     if ( xCoeffTail )
                         xCoeffTail = xCoeffTail->next = xCoeff;
                     else
@@ -506,7 +617,7 @@ SonicParse_Expression *SonicParse_Expression::Parse_t3 ( SonicScanner &scanner )
                     scanner.pushToken ( tp );
                     for(;;)
                     {
-                        SonicParse_Expression *yCoeff = SonicParse_Expression::Parse_term (scanner);
+                        SonicParse_Expression *yCoeff = SonicParse_Expression::Parse_term (scanner, px);
                         if ( yCoeffTail )
                             yCoeffTail = yCoeffTail->next = yCoeff;
                         else
@@ -521,7 +632,7 @@ SonicParse_Expression *SonicParse_Expression::Parse_t3 ( SonicScanner &scanner )
                 }
 
                 scanner.scanExpected ( "," );
-                SonicParse_Expression *iirInput = SonicParse_Expression::Parse_term (scanner);
+                SonicParse_Expression *iirInput = SonicParse_Expression::Parse_term (scanner, px);
                 scanner.scanExpected ( ")" );
 
                 expr = new SonicParse_Expression_IIR (
@@ -538,7 +649,7 @@ SonicParse_Expression *SonicParse_Expression::Parse_t3 ( SonicScanner &scanner )
                 while ( t2 != ")" )
                 {
                     scanner.pushToken ( t2 );
-                    SonicParse_Expression *newParm = Parse (scanner);
+                    SonicParse_Expression *newParm = Parse (scanner, px);
                     if ( parmTail )
                         parmTail = parmTail->next = newParm;
                     else
@@ -570,17 +681,17 @@ SonicParse_Expression *SonicParse_Expression::Parse_t3 ( SonicScanner &scanner )
     }
     else if ( t == "(" )
     {
-        expr = Parse ( scanner );
+        expr = Parse ( scanner, px );
         scanner.scanExpected ( ")" );
     }
     else if ( t == "!" )
     {
-        SonicParse_Expression *child = Parse_t3 (scanner);
+        SonicParse_Expression *child = Parse_t3 (scanner, px);
         expr = new SonicParse_Expression_Not ( t, child );
     }
     else if ( t == "-" )
     {
-        SonicParse_Expression *child = Parse_t3 (scanner);
+        SonicParse_Expression *child = Parse_t3 (scanner, px);
         expr = new SonicParse_Expression_Negate ( t, child );
     }
     else if ( t == "$" )
@@ -790,6 +901,30 @@ void SonicParse_Expression_UnaryOp::getWaveSymbolList (
     child->getWaveSymbolList ( waveSymbol, maxWaveSymbols, numSoFar, numOccurrences );
 }
 
+
+//------------------------------------------------------------------------------
+
+
+SonicParse_Expression_ArraySubscript::~SonicParse_Expression_ArraySubscript()
+{
+    if ( indexList )
+    {
+        delete indexList;
+        indexList = 0;
+    }
+}
+
+
+void SonicParse_Expression_ArraySubscript::getWaveSymbolList (
+    const SonicToken *waveSymbol[], 
+    int maxWaveSymbols,
+    int &numSoFar,
+    int &numOccurrences )
+{
+    for ( SonicParse_Expression *ip = indexList; ip; ip = ip->queryNext() )
+        ip->getWaveSymbolList ( waveSymbol, maxWaveSymbols, numSoFar, numOccurrences );
+}
+    
 
 //------------------------------------------------------------------------------
 

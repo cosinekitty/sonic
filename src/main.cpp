@@ -6,6 +6,9 @@
 
     Revision history:
 
+1998 October 2 [Don Cross]
+    Adding suport for multiple source files.
+
 1998 September 9 [Don Cross]
     Added function 'SonicGenCleanup', which gets called whenever
     a SonicParseException is caught.  Now, this function simply
@@ -29,26 +32,31 @@ int main ( int argc, char *argv[] )
     cout << "Version " << SONIC_VERSION << ", released on " << SONIC_RELEASE_DATE << ".\n";
     cout << "https://github.com/cosinekitty/sonic" << "\n\n";
 
-    if ( argc != 2 )
+    if ( argc < 2 )
     {
-        cerr << "Use:  SONIC sourceFile\n\n";
-        return 1;
-    }
-
-    const char *filename = argv[1];
-    ifstream input ( filename, ios::nocreate );
-    if ( !input )
-    {
-        cerr << "Error:  Cannot open source file '" << filename << "'" << endl;
+        cerr << "Use:  SONIC sourcefile [sourcefile...]\n\n";
         return 1;
     }
 
     int retcode = 0;
     try
     {
-        SonicScanner scanner ( input, filename );
         SonicParse_Program program;
-        program.parse ( scanner );
+        for ( int k=1; k < argc; ++k )
+        {
+            const char *filename = argv[k];
+            ifstream input ( filename, ios::nocreate );
+            if ( !input )
+            {
+                cerr << "Error:  Cannot open source file '" << filename << "'" << endl;
+                return 1;
+            }
+            SonicScanner scanner ( input, filename );
+            program.parse ( scanner );
+            input.close();
+        }
+
+        program.validate();
         program.generateCode();
     }
     catch ( const SonicParseException &spe )

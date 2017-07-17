@@ -10,6 +10,13 @@
     called, it automatically pops the top token off the stack if 
     any are there and returns that token.)
 
+Revision history:
+
+1998 October 2 [Don Cross]
+    Because I am adding support for multiple source files in a
+    program, class SonicToken now needs to know which source 
+    file it came from to report syntax errors.
+
 ====================================================================*/
 #ifndef __scan_h
 #define __scan_h
@@ -69,6 +76,7 @@ public:
     const char *queryToken() const { return token; }
     int queryLine() const { return line; }
     int queryColumn() const { return column; }
+    const char *querySourceFilename() const { return sourceFile; }
 
 private:
     static SonicTokenType ClassifySymbol ( const char * );
@@ -78,6 +86,7 @@ private:
     char            *token;
     int             line;
     int             column;
+    const char      *sourceFile;
 };
 
 
@@ -86,6 +95,7 @@ class ostream;
 
 
 const int SCANNER_STACK_SIZE = 16;
+const int MAX_SONIC_SOURCE_FILES = 256;
 
 
 class SonicScanner
@@ -97,6 +107,8 @@ public:
     bool getToken ( SonicToken &, bool forceGet = true );
     void scanExpected ( const char *expectedToken );
     void pushToken ( const SonicToken & );
+
+    static const char *GetCurrentSourceFilename();
 
 private:
     static SonicTokenType SonicScanner::ClassifySymbol ( const char *s );
@@ -117,6 +129,9 @@ private:
 
     SonicToken tokenStack [SCANNER_STACK_SIZE];
     int tokenStackTop;  // index to top item; -1 means stack is empty
+
+    static char *FilenameTable [MAX_SONIC_SOURCE_FILES];
+    static int NumFilenames;
 };
 
 
