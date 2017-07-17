@@ -146,7 +146,7 @@ SonicTokenType SonicScanner::ClassifySymbol ( const char *s )
         0
     };
 
-    for ( i=0; builtin[i]; ++i )
+    for ( int i=0; builtin[i]; ++i )
     {
         if ( strcmp(s,builtin[i]) == 0 )
             return STT_BUILTIN;

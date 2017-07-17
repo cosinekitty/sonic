@@ -237,7 +237,7 @@ void SonicParse_Statement_Assignment::generateCode ( std::ostream &o, Sonic_Code
             modify = true;
         }
 
-        for ( i=1; i < numWaveSymbols; i++ )
+        for ( int i=1; i < numWaveSymbols; i++ )
         {
             if ( *waveSymbol[i] != "$" )
             {
@@ -359,7 +359,7 @@ void SonicParse_Statement_Assignment::generateCode ( std::ostream &o, Sonic_Code
         x.popIndent();
         x.indent ( o, "}\n" );
 
-        for ( i=0; i < numWaveSymbols; i++ )
+        for ( int i=0; i < numWaveSymbols; i++ )
         {
             if ( *waveSymbol[i] != "$" )
             {
@@ -1281,7 +1281,7 @@ void SonicParse_Expression_IIR::generatePreChannelLoopCode (
 
     if ( xCoeffCount == 1 )
     {
-        for ( c=0; c < numChannels; ++c )
+        for ( int c=0; c < numChannels; ++c )
         {
             x.indent ( o, accum );
             o << "[" << c << "] += " << TEMPORARY_PREFIX << t_xBuffer[c] << "[0]";
@@ -1302,7 +1302,7 @@ void SonicParse_Expression_IIR::generatePreChannelLoopCode (
         x.indent ( o, "{\n" );
         x.pushIndent();
 
-        for ( c=0; c < numChannels; ++c )
+        for ( int c=0; c < numChannels; ++c )
         {
             x.indent ( o, accum );
             o << "[" << c << "] += " << TEMPORARY_PREFIX << t_xBuffer[c] << "[" << wrap << "]";
@@ -1327,7 +1327,7 @@ void SonicParse_Expression_IIR::generatePreChannelLoopCode (
     {
         if ( yCoeffCount == 1 )
         {
-            for ( c=0; c < numChannels; ++c )
+            for ( int c=0; c < numChannels; ++c )
             {
                 x.indent ( o, accum );
                 o << "[" << c << "] += " << TEMPORARY_PREFIX << t_yBuffer[c] << "[0]";
@@ -1360,7 +1360,7 @@ void SonicParse_Expression_IIR::generatePreChannelLoopCode (
                 o << wrap << " == " << yCoeffCount << " )  " << wrap << " = 0;\n";
             }
 
-            for ( c=0; c < numChannels; ++c )
+            for ( int c=0; c < numChannels; ++c )
             {
                 x.indent ( o, accum );
                 o << "[" << c << "] += " << TEMPORARY_PREFIX << t_yBuffer[c] << "[" << wrap << "]";
@@ -1371,7 +1371,7 @@ void SonicParse_Expression_IIR::generatePreChannelLoopCode (
             x.indent ( o, "}\n" );
         }
 
-        for ( c=0; c < numChannels; ++c )
+        for ( int c=0; c < numChannels; ++c )
         {
             x.indent ( o, TEMPORARY_PREFIX );
             o << t_yBuffer[c] << "[" << yIndex << "] = " << accum << "[" << c << "];\n";
