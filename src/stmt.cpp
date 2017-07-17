@@ -1,6 +1,6 @@
 /*=============================================================================
 
-    stmt.cpp  -  Copyright (C) 1998 by Don Cross <dcross@intersrv.com>
+    stmt.cpp  -  Copyright (C) 1998 by Don Cross <cosinekitty@gmail.com>
 
     This module is responsible for parsing Sonic statement constructs,
     including 'if', 'while', 'repeat', 'return', and assignment statements.

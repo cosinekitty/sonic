@@ -1,6 +1,6 @@
 /*=======================================================================
 
-    main.cpp  -  Copyright (C) 1998 by Don Cross <dcross@intersrv.com>
+    main.cpp  -  Copyright (C) 1998 by Don Cross <cosinekitty@gmail.com>
 
     Main source file for Sonic/C++ translator.
 
@@ -25,9 +25,9 @@ void SonicGenCleanup();
 
 int main ( int argc, char *argv[] )
 {
-    cout << "Sonic/C++ translator - Copyright (C) 1998 by Don Cross <dcross@intersrv.com>\n";
+    cout << "Sonic/C++ translator - Copyright (C) 1998 by Don Cross <cosinekitty@gmail.com>\n";
     cout << "Version " << SONIC_VERSION << ", released on " << SONIC_RELEASE_DATE << ".\n";
-    cout << "http://www.intersrv.com/~dcross/sonic" << "\n\n";
+    cout << "https://github.com/cosinekitty/sonic" << "\n\n";
 
     if ( argc != 2 )
     {

@@ -1,6 +1,6 @@
 /*==========================================================================
 
-    codegen.cpp  -  Copyright (C) 1998 by Don Cross <dcross@intersrv.com>
+    codegen.cpp  -  Copyright (C) 1998 by Don Cross <cosinekitty@gmail.com>
 
     This module is responsible for generating output C++ source code
     once Sonic source code has been parsed and validated without finding

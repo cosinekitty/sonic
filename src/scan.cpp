@@ -1,6 +1,6 @@
 /*=======================================================================
 
-    scan.cpp  -  Copyright (C) 1998 by Don Cross <dcross@intersrv.com>
+    scan.cpp  -  Copyright (C) 1998 by Don Cross <cosinekitty@gmail.com>
 
     This module is responsible for scanning and classifying 
     lexical tokens for the Sonic programming language.

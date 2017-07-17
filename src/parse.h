@@ -1,6 +1,6 @@
 /*============================================================================
 
-    parse.h  -  Copyright (C) 1998 by Don Cross <dcross@intersrv.com>
+    parse.h  -  Copyright (C) 1998 by Don Cross <cosinekitty@gmail.com>
 
     Main header file for Sonic parser/translator.
 

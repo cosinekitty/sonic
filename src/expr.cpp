@@ -1,6 +1,6 @@
 /*========================================================================
 
-    expr.cpp  -  Copyright (C) 1998 by Don Cross <dcross@intersrv.com>
+    expr.cpp  -  Copyright (C) 1998 by Don Cross <cosinekitty@gmail.com>
 
     This module is responsible for parsing Sonic expressions.
     These expressions appear in many parts of the Sonic grammar,

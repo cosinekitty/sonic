@@ -1,6 +1,6 @@
 /*===========================================================================
 
-    validate.cpp  -  Copyright (C) 1998 by Don Cross <dcross@intersrv.com>
+    validate.cpp  -  Copyright (C) 1998 by Don Cross <cosinekitty@gmail.com>
 
     This code is responsible for doing post-parse validation of a 
     Sonic program.  It also has certain critical side effects such as

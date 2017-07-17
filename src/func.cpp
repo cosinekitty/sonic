@@ -1,6 +1,6 @@
 /*========================================================================
 
-    func.cpp  -  Copyright (C) 1998 by Don Cross <dcross@intersrv.com>
+    func.cpp  -  Copyright (C) 1998 by Don Cross <cosinekitty@gmail.com>
 
     This module contains code to parse Sonic function/program bodies.
 
