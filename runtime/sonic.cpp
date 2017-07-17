@@ -122,7 +122,7 @@ SonicWave::SonicWave (
     {
         fprintf ( stderr,
             "Invalid number of channels %d creating Sonic variable '%s'\n",
-            requiredNumChannels );
+            requiredNumChannels, _varname);
 
         exit(1);
     }
