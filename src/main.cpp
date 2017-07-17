@@ -37,7 +37,8 @@ int main ( int argc, char *argv[] )
     }
 
     const char *filename = argv[1];
-    std::ifstream input ( filename, ios::nocreate );
+	
+    std::ifstream input ( filename );
     if ( !input )
     {
 		std::cerr << "Error:  Cannot open source file '" << filename << "'" << std::endl;
