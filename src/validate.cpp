@@ -12,6 +12,13 @@
 
     Revision history:
 
+1998 September 30 [Don Cross]
+    Adding 'for' loop support.
+
+1998 September 29 [Don Cross]
+    Fixed bug: wasn't allowing a subscripted array variable to be passed
+    by value.
+
 1998 September 23 [Don Cross]
     Adding support for passing function arguments by reference.
     Therefore, I'm adding code to verify that reference arguments
@@ -97,7 +104,21 @@ void SonicParse_Statement_While::validate (
     loop->validate ( program, func );
 
     if ( condition->determineType() != STYPE_BOOLEAN )
-        throw SonicParseException ( "argument to 'while' must be boolean type", condition->getFirstToken() );
+        throw SonicParseException ( "argument to 'while' must be of boolean type", condition->getFirstToken() );
+}
+
+
+void SonicParse_Statement_For::validate (
+    SonicParse_Program &program,
+    SonicParse_Function *func )
+{
+    init->validate ( program, func );
+    condition->validate ( program, func );
+    update->validate ( program, func );
+    loop->validate ( program, func );
+
+    if ( condition->determineType() != STYPE_BOOLEAN )
+        throw SonicParseException ( "condition expression in 'for' must be of boolean type", condition->getFirstToken() );
 }
 
 
@@ -147,6 +168,14 @@ void SonicParse_Statement_Assignment::validate (
     if ( !rvalue->canConvertTo (ltype) )
         throw SonicParseException ( "cannot convert expression to type on left side of '='", rvalue->getFirstToken() );
 
+    SonicType rtype = rvalue->determineType();
+    if ( rtype == STYPE_ARRAY )
+    {
+        // can assign an array to another only when they are identical.
+        if ( rtype != ltype )
+            throw SonicParseException ( "array types in assignment must be identical", lvalue->queryVarName() );
+    }
+
     if ( ltype == STYPE_BOOLEAN )
     {
         if ( op != "=" )
@@ -161,6 +190,9 @@ void SonicParse_VarDecl::validate (
 {
     if ( init )
     {
+        if ( type == STYPE_ARRAY )
+            throw SonicParseException ( "array variable may not have initializer", init->getFirstToken() );
+
         // multiple expressions can occur in initializers for import function (constructors)
         for ( SonicParse_Expression *ip = init; ip; ip = ip->queryNext() )
             ip->validate ( prog, func );
@@ -244,6 +276,36 @@ void SonicParse_Function::validateUniqueSymbol (
 }
 
 
+void SonicParse_Expression_ArraySubscript::validate ( 
+    SonicParse_Program &prog, 
+    SonicParse_Function *func )
+{
+    SonicParse_VarDecl *decl = prog.findSymbol ( arrayVarName, func, true );
+    const SonicType &arrayType = decl->queryType();
+    if ( arrayType != STYPE_ARRAY )
+        throw SonicParseException ( "subscript of non-array encountered", arrayVarName );
+
+    // Make sure the the number of subscripts matches 
+    // the number of dimensions for this array...
+    // Validate the index expressions while we're in the neighborhood.
+
+    int numSubscripts = 0;
+    for ( SonicParse_Expression *ip = indexList; ip; ip = ip->queryNext() )
+    {
+        ip->validate ( prog, func );
+        if ( !ip->canConvertTo (STYPE_INTEGER) )
+            throw SonicParseException ( "cannot convert array subscript to 'integer'", ip->getFirstToken() );
+
+        ++numSubscripts;
+    }
+
+    if ( numSubscripts != arrayType.queryNumDimensions() )
+        throw SonicParseException ( "wrong number of subscripts to array", arrayVarName );  
+
+    elementType = arrayType.queryElementType();
+}
+
+
 int SonicParse_Expression_Vector::queryNumChannels() const
 {
     int count = 0;
@@ -300,8 +362,14 @@ void SonicParse_Expression_BinaryBoolOp::validate (
         if ( ltype == STYPE_WAVE )
             throw SonicParseException ( "left operand may not be of type 'wave'", op );
 
+        if ( ltype == STYPE_ARRAY )
+            throw SonicParseException ( "left operand may not be an array type", op );
+
         if ( rtype == STYPE_WAVE )
             throw SonicParseException ( "right operand may not be of type 'wave'", op );
+
+        if ( rtype == STYPE_ARRAY )
+            throw SonicParseException ( "right operand may not be of array type", op );
 
         if  ( !CanConvertTo(rtype,ltype) )
             throw SonicParseException ( "operands of comparison have incompatible types", op );
@@ -376,8 +444,10 @@ void SonicParse_Expression_FunctionCall::validate (
 
                 if ( vp->queryType().isReference() )
                 {
+                    SonicExpressionType exprType = ep->queryExpressionType();
+
                     // Make sure the parameter is a valid lvalue.
-                    if ( ep->queryExpressionType() != ETYPE_VARIABLE )
+                    if ( exprType != ETYPE_VARIABLE && exprType != ETYPE_ARRAY_SUBSCRIPT )
                     {
                         throw SonicParseException (
                             "Must pass a variable as reference argument to function",
@@ -474,6 +544,9 @@ SonicType SonicParse_Lvalue::determineType (
 
     SonicParse_VarDecl *decl = prog.findSymbol ( varName, func, true );
     SonicType type = decl->queryType();
+    if ( indexList )
+        type = type.queryElementType();
+
     return type;
 }
 
@@ -483,6 +556,7 @@ void SonicParse_Lvalue::validate (
     SonicParse_Function *func )
 {
     SonicParse_VarDecl *decl = prog.findSymbol ( varName, func, true );
+    SonicType type = decl->queryType();
     if ( isWave )
     {
         if ( sampleLimit )
@@ -493,8 +567,26 @@ void SonicParse_Lvalue::validate (
                 throw SonicParseException ( "sample limit expression must have numeric type", sampleLimit->getFirstToken() );
         }
 
-        if ( decl->queryType() != STYPE_WAVE )
+        if ( type != STYPE_WAVE )
             throw SonicParseException ( "subscript '[]' allowed only on variable of wave type", varName );
+    }
+
+    if ( indexList )
+    {
+        if ( type != STYPE_ARRAY )
+            throw SonicParseException ( "cannot subscript this variable", queryVarName() );
+
+        int indexCount = 0;
+        for ( SonicParse_Expression *ip = indexList; ip; ip = ip->queryNext() )
+        {
+            ip->validate ( prog, func );
+            if ( !ip->canConvertTo(STYPE_INTEGER) )
+                throw SonicParseException ( "cannot convert array subscript to 'integer'", ip->getFirstToken() );
+            ++indexCount;
+        }
+
+        if ( indexCount != type.queryNumDimensions() )
+            throw SonicParseException ( "wrong number of dimensions in array subscript", queryVarName() );
     }
 }
 

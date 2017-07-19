@@ -6,6 +6,12 @@
 
     Revision history:
 
+1998 October 1 [Don Cross]
+    Now allow '?' to be first array dimension in function parameters.
+
+1998 September 28 [Don Cross]
+    Adding support for array types.
+
 1998 September 23 [Don Cross]
     Added support for passing parameters by reference.
 
@@ -19,16 +25,32 @@
 ========================================================================*/
 #include <iostream>
 #include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
 
 #include "scan.h"
 #include "parse.h"
 
 
-SonicType ParseType ( SonicScanner &scanner, SonicParse_Program &prog )
+bool IsPositiveIntegerConstant ( const char *s )
+{
+    if ( strchr(s,'e') || strchr(s,'E') || strchr(s,'.') )
+        return false;
+
+    if ( s[0] == '-' )
+        return false;
+
+    return true;
+}
+
+
+SonicType ParseType ( SonicScanner &scanner, SonicParseContext &px )
 {
     SonicType type = STYPE_UNDEFINED;
     SonicToken t;
     scanner.getToken ( t );
+
+    bool arrayAllowed = true;
 
     if ( t == "integer" )
         type = STYPE_INTEGER;
@@ -37,16 +59,73 @@ SonicType ParseType ( SonicScanner &scanner, SonicParse_Program &prog )
     else if ( t == "boolean" )
         type = STYPE_BOOLEAN;
     else if ( t == "wave" )
+    {
         type = STYPE_WAVE;
+        arrayAllowed = false;
+    }
     else
     {
+        arrayAllowed = false;
+
         // See if this is an imported type...
-        SonicParse_Function *import = prog.findImportType ( t );
+        SonicParse_Function *import = px.prog.findImportType ( t );
         if ( import )
             type = &import->queryName();
         else
             throw SonicParseException ( "expected data type", t );
     }
+
+    SonicToken lbracket;
+    scanner.getToken ( lbracket );
+    if ( lbracket == "[" )
+    {
+        SonicToken dim, punct;
+        int dimArray [MAX_SONIC_ARRAY_DIMENSIONS];
+        int dimCount = 0;
+
+        for(;;)
+        {
+            scanner.getToken ( dim );
+            if ( dimCount >= MAX_SONIC_ARRAY_DIMENSIONS )
+                throw SonicParseException ( "too many array dimensions", dim );
+
+            if ( dim == "?" )
+            {
+                if ( !px.insideFuncParms )
+                    throw SonicParseException ( "may use '?' as array dimension only in function parameters", dim );
+
+                if ( dimCount > 0 )
+                    throw SonicParseException ( "may use '?' only as first dimension of array", dim );
+
+                dimArray[dimCount] = 0;
+            }
+            else
+            {
+                dimArray[dimCount] = atoi ( dim.queryToken() );
+
+                if ( dim.queryTokenType() != STT_CONSTANT || 
+                     !IsPositiveIntegerConstant(dim.queryToken()) ||
+                     dimArray[dimCount] < 1 )
+                {
+                    throw SonicParseException ( 
+                        "array dimension must be positive integer constant", 
+                        dim );
+                }
+            }
+
+            ++dimCount;
+
+            scanner.getToken ( punct );
+            if ( punct == "]" )
+                break;
+            else if ( punct != "," )
+                throw SonicParseException ( "expected ',' or ']'", punct );
+        }
+
+        type = SonicType ( dimCount, dimArray, type.queryTypeClass() );
+    }
+    else
+        scanner.pushToken ( lbracket );
 
     if ( type == STYPE_UNDEFINED )
         throw SonicParseException ( "internal error: could not parse type", t );
@@ -155,8 +234,8 @@ bool IsPseudoFunction ( const SonicToken &name )
 
 void SonicParse_VarDecl::ParseVarList (
     SonicScanner &scanner,
+    SonicParseContext &px,
     SonicParse_VarDecl * &varList,
-    SonicParse_Program &prog,
     bool isGlobal )
 {
     SonicParse_VarDecl *varTail = varList;
@@ -197,7 +276,7 @@ void SonicParse_VarDecl::ParseVarList (
             SonicParse_Expression *initializer = 0;
             scanner.getToken ( t );
             if ( t == "=" )
-                initializer = SonicParse_Expression::Parse ( scanner );
+                initializer = SonicParse_Expression::Parse ( scanner, px );
             else if ( t == "(" )
             {
                 scanner.getToken ( t );
@@ -207,7 +286,7 @@ void SonicParse_VarDecl::ParseVarList (
                     SonicParse_Expression *tail = 0;
                     for(;;)
                     {
-                        SonicParse_Expression *parm = SonicParse_Expression::Parse_b0 ( scanner );
+                        SonicParse_Expression *parm = SonicParse_Expression::Parse_b0 ( scanner, px );
                         if ( tail )
                             tail = tail->next = parm;
                         else
@@ -228,12 +307,17 @@ void SonicParse_VarDecl::ParseVarList (
                 varName,
                 STYPE_UNDEFINED,
                 initializer,
-                isGlobal );
+                isGlobal,
+                false );
 
             if ( varTail )
                 varTail = varTail->next = newVar;
             else
+            {
                 varList = varTail = newVar;
+                if ( !isGlobal && !px.localVars )
+                    px.localVars = varList;
+            }
 
             if ( !thisVarList )
                 thisVarList = newVar;
@@ -245,7 +329,7 @@ void SonicParse_VarDecl::ParseVarList (
                 throw SonicParseException ( "expected ',' or ':'", t );
         }
 
-        SonicType varListType = ParseType (scanner, prog);
+        SonicType varListType = ParseType (scanner, px);
         while ( thisVarList )
         {
             thisVarList->type = varListType;
@@ -259,7 +343,7 @@ void SonicParse_VarDecl::ParseVarList (
 
 SonicParse_Function *SonicParse_Function::Parse ( 
     SonicScanner &scanner, 
-    SonicParse_Program &prog )
+    SonicParseContext &px )
 {
     char temp [256];
 
@@ -306,7 +390,9 @@ SonicParse_Function *SonicParse_Function::Parse (
 
         scanner.scanExpected ( ":" );
 
-        SonicType parmType = ParseType ( scanner, prog );
+        px.insideFuncParms = true;
+        SonicType parmType = ParseType ( scanner, px );
+        px.insideFuncParms = false;
 
         // Check for '&', indicating that the parameter is passed by reference 
         // instead of by value.
@@ -322,12 +408,13 @@ SonicParse_Function *SonicParse_Function::Parse (
             parmName,
             parmType,
             0,
-            false );
+            false,
+            true );
 
         if ( parmList )
             parmTail = parmTail->next = newParm;
         else
-            parmList = parmTail = newParm;
+            px.localParms = parmList = parmTail = newParm;
 
         scanner.getToken ( t );
         if ( t != "," )
@@ -337,14 +424,14 @@ SonicParse_Function *SonicParse_Function::Parse (
     SonicType returnType = STYPE_VOID;
     scanner.getToken ( t );
     if ( t == ":" )
-        returnType = ParseType (scanner, prog);
+        returnType = ParseType (scanner, px);
     else
         scanner.pushToken ( t );
 
     scanner.scanExpected ( "{" );
 
     SonicParse_VarDecl *varList = 0;
-    SonicParse_VarDecl::ParseVarList ( scanner, varList, prog, false );
+    SonicParse_VarDecl::ParseVarList ( scanner, px, varList, false );
 
     SonicParse_Statement *statementList=0, *statementTail=0;
 
@@ -355,7 +442,7 @@ SonicParse_Function *SonicParse_Function::Parse (
             break;
 
         scanner.pushToken ( t );
-        SonicParse_Statement *newStatement = SonicParse_Statement::Parse ( scanner );
+        SonicParse_Statement *newStatement = SonicParse_Statement::Parse ( scanner, px );
         if ( statementTail )
             statementTail = statementTail->next = newStatement;
         else
@@ -369,8 +456,10 @@ SonicParse_Function *SonicParse_Function::Parse (
         parmList,
         varList,
         statementList,
-        prog );
+        px.prog );
 
+    px.localVars = 0;
+    px.localParms = 0;
     return func;
 }
 
@@ -405,13 +494,15 @@ SonicParse_VarDecl::SonicParse_VarDecl (
     const SonicToken &_name,
     SonicType _type,
     SonicParse_Expression *_init,
-    bool _isGlobal ):
+    bool _isGlobal,
+    bool _isFunctionParm ):
         next ( 0 ),
         name ( _name ),
         type ( _type ),
         init ( _init ),
         resetFlag ( false ),
-        isGlobal ( _isGlobal )
+        isGlobal ( _isGlobal ),
+        isFunctionParm ( _isFunctionParm )
 {
 }
 
