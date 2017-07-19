@@ -26,7 +26,7 @@ add_library(SonicRuntime STATIC
 	runtime/sonic.cpp
 	runtime/sonic.h
 	)
-target_include_directories(runtime PUBLIC runtime)
+target_include_directories(SonicRuntime PUBLIC runtime)
 
 add_executable(Sonic
     src/codegen.cpp
