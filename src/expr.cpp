@@ -15,7 +15,7 @@ Revision history:
     Made SonicType::operator== be a const function.
 
 ========================================================================*/
-#include <iostream.h>
+#include <iostream>
 #include <stdio.h>
 #include <string.h>
 

@@ -41,7 +41,7 @@ enum SonicTokenType
 };
 
 
-ostream & operator << ( ostream &, SonicTokenType );
+std::ostream & operator << (std::ostream &, SonicTokenType );
 
 
 struct SonicTokenChar
@@ -81,17 +81,13 @@ private:
 };
 
 
-class istream;
-class ostream;
-
-
 const int SCANNER_STACK_SIZE = 16;
 
 
 class SonicScanner
 {
 public:
-    SonicScanner ( istream &_input, const char *_filename );
+    SonicScanner (std::istream &_input, const char *_filename );
     ~SonicScanner();
 
     bool getToken ( SonicToken &, bool forceGet = true );
@@ -107,7 +103,7 @@ private:
     SonicTokenChar get();
 
 private:
-    istream &input;
+	std::istream &input;
     char *filename;
     int line;
     int column;
@@ -125,7 +121,7 @@ class SonicParseException
 public:
     SonicParseException ( const char *_reason );
     SonicParseException ( const char *_reason, const SonicToken &_nearToken );
-    friend ostream & operator<< ( ostream &, const SonicParseException & );
+    friend std::ostream & operator<< (std::ostream &, const SonicParseException & );
 
 private:
     char reason [128];

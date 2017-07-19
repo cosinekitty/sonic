@@ -20,7 +20,7 @@
     is defined more than once.
 
 =============================================================================*/
-#include <fstream.h>
+#include <fstream>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -354,7 +354,7 @@ void SonicParse_Program::generateCode()
     char temp [512];
     char cppFilename [256];
     sprintf ( cppFilename, "%s.cpp", programBody->queryName().queryToken() );
-    ofstream o ( cppFilename );
+    std::ofstream o ( cppFilename );
     if ( !o )
     {
         sprintf ( temp, "Cannot open file '%s' for write.", cppFilename );
@@ -371,7 +371,7 @@ void SonicParse_Program::generateCode()
     o << "// This file created: " << ctime(&now) << "\n";
     o << "// Standard includes...\n";
     o << "#include <stdio.h>\n";
-    o << "#include <iostream.h>\n";
+    o << "#include <iostream>\n";
     o << "#include <stdlib.h>\n";
     o << "#include <string.h>\n";
     o << "#include <math.h>\n";
@@ -399,7 +399,7 @@ void SonicParse_Program::generateCode()
 }
 
 
-void SonicParse_Program::genImportIncludes ( ostream &o )
+void SonicParse_Program::genImportIncludes ( std::ostream &o )
 {
     for ( SonicParse_Function *fp = importList; fp; fp = fp->next )
     {
@@ -414,7 +414,7 @@ void SonicParse_Program::genImportIncludes ( ostream &o )
 }
 
 
-void SonicParse_Program::genFunctionPrototypes ( ostream &o, Sonic_CodeGenContext &x )
+void SonicParse_Program::genFunctionPrototypes ( std::ostream &o, Sonic_CodeGenContext &x )
 {
     programBody->generatePrototype ( o, x );
     o << ";\n\n";
@@ -427,7 +427,7 @@ void SonicParse_Program::genFunctionPrototypes ( ostream &o, Sonic_CodeGenContex
 }
 
 
-void SonicParse_Program::genGlobalVariables ( ostream &o, Sonic_CodeGenContext &x )
+void SonicParse_Program::genGlobalVariables ( std::ostream &o, Sonic_CodeGenContext &x )
 {
     if ( globalVars )
     {
@@ -443,7 +443,7 @@ void SonicParse_Program::genGlobalVariables ( ostream &o, Sonic_CodeGenContext &
 }
 
 
-void SonicParse_Program::genMain ( ostream &o, Sonic_CodeGenContext &x )
+void SonicParse_Program::genMain ( std::ostream &o, Sonic_CodeGenContext &x )
 {
     o << "\n";
     o << "int main ( int argc, char *argv[] )\n";
@@ -470,7 +470,7 @@ void SonicParse_Program::genMain ( ostream &o, Sonic_CodeGenContext &x )
     // generate code to extract program arguments from argv, argc...
 
     int argc = 0;
-    for ( pp = programBody->queryParmList(); pp; pp = pp->queryNext() )
+    for ( SonicParse_VarDecl *pp = programBody->queryParmList(); pp; pp = pp->queryNext() )
     {
         ++argc;
         x.indent ( o );
@@ -518,7 +518,7 @@ void SonicParse_Program::genMain ( ostream &o, Sonic_CodeGenContext &x )
     x.indent ( o );
     o << FUNCTION_PREFIX << programBody->queryName().queryToken() << " ( ";
 
-    for ( pp = programBody->queryParmList(); pp; pp = pp->queryNext() )
+    for ( SonicParse_VarDecl *pp = programBody->queryParmList(); pp; pp = pp->queryNext() )
     {
         o << LOCAL_SYMBOL_PREFIX << pp->queryName().queryToken();
 
@@ -531,7 +531,7 @@ void SonicParse_Program::genMain ( ostream &o, Sonic_CodeGenContext &x )
     // generate code to convert all float files to permanent WAV files...
 
     argc = 0;
-    for ( pp = programBody->queryParmList(); pp; pp = pp->queryNext() )
+    for ( SonicParse_VarDecl *pp = programBody->queryParmList(); pp; pp = pp->queryNext() )
     {
         ++argc;
         if ( pp->queryType() == STYPE_WAVE )
@@ -549,13 +549,13 @@ void SonicParse_Program::genMain ( ostream &o, Sonic_CodeGenContext &x )
 }
 
 
-void SonicParse_Program::genProgramFunction ( ostream &o, Sonic_CodeGenContext &x )
+void SonicParse_Program::genProgramFunction ( std::ostream &o, Sonic_CodeGenContext &x )
 {   
     programBody->generateCode ( o, x );
 }
 
 
-void SonicParse_Program::genFunctions ( ostream &o, Sonic_CodeGenContext &x )
+void SonicParse_Program::genFunctions ( std::ostream &o, Sonic_CodeGenContext &x )
 {
     for ( SonicParse_Function *fp = functionBodyList; fp; fp = fp->next )
         fp->generateCode ( o, x );

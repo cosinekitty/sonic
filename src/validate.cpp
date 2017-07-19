@@ -37,7 +37,7 @@
     of compatible types, and may not be of type 'wave'.
 
 ===========================================================================*/
-#include <iostream.h>
+#include <iostream>
 #include <stdio.h>
 
 #include "scan.h"
@@ -204,7 +204,7 @@ void SonicParse_Function::validate ( SonicParse_Program &prog )
         vp->validate ( prog, this );
     }
 
-    for ( vp = varList; vp; vp = vp->next )
+    for ( SonicParse_VarDecl *vp = varList; vp; vp = vp->next )
     {
         validateUniqueSymbol ( prog, vp->queryName() );
         vp->validate ( prog, this );
@@ -227,13 +227,13 @@ void SonicParse_Function::validateUniqueSymbol (
             ++numFound;
     }
 
-    for ( fp = prog.queryImportList(); fp; fp = fp->next )
+    for ( SonicParse_Function *fp = prog.queryImportList(); fp; fp = fp->next )
     {
         if ( fp->name == name )
             ++numFound;
     }
 
-    fp = prog.queryProgramBody();
+	SonicParse_Function *fp = prog.queryProgramBody();
     if ( fp->name == name )
         ++numFound;
 
@@ -555,7 +555,7 @@ void SonicParse_Expression_IIR::validate (
             throw SonicParseException ( "cannot convert filter x-coefficient to type 'real'", ep->getFirstToken() );
     }
 
-    for ( ep = yCoeffList; ep; ep = ep->queryNext() )
+    for ( SonicParse_Expression *ep = yCoeffList; ep; ep = ep->queryNext() )
     {
         ep->validate ( prog, func );
         if ( !ep->canConvertTo (STYPE_REAL) )

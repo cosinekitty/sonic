@@ -17,7 +17,7 @@
     the new feature: global variables.
 
 ========================================================================*/
-#include <iostream.h>
+#include <iostream>
 #include <stdio.h>
 
 #include "scan.h"
@@ -107,13 +107,13 @@ SonicParse_VarDecl *SonicParse_Function::findSymbol (
             return vp;
     }
 
-    for ( vp = varList; vp; vp = vp->next )
+    for ( SonicParse_VarDecl *vp = varList; vp; vp = vp->next )
     {
         if ( vp->queryName() == symbol )
             return vp;
     }
 
-    vp = prog.findGlobalVar ( symbol );
+	SonicParse_VarDecl *vp = prog.findGlobalVar ( symbol );
     if ( vp )
         return vp;
 
@@ -133,7 +133,7 @@ int SonicParse_Function::countInstances ( const SonicToken &name ) const
             ++count;
     }
 
-    for ( vp = parmList; vp; vp = vp->next )
+    for ( SonicParse_VarDecl *vp = parmList; vp; vp = vp->next )
     {
         if ( vp->queryName() == name )
             ++count;
@@ -391,7 +391,7 @@ void SonicParse_Function::clearAllResetFlags()
     for ( SonicParse_VarDecl *vp = parmList; vp; vp = vp->queryNext() )
         vp->modifyResetFlag ( false );
 
-    for ( vp = varList; vp; vp = vp->next )
+    for ( SonicParse_VarDecl *vp = varList; vp; vp = vp->next )
         vp->modifyResetFlag ( false );
 
     prog.clearAllResetFlags();

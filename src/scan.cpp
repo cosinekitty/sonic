@@ -11,7 +11,7 @@
     any are there and returns that token.)
 
 =======================================================================*/
-#include <iostream.h>
+#include <iostream>
 #include <new.h>
 #include <string.h>
 #include <stdio.h>
@@ -85,7 +85,7 @@ bool SonicToken::operator== ( const char *s ) const
 //-----------------------------------------------------------------------
 
 
-SonicScanner::SonicScanner ( istream &_input, const char *_filename ):
+SonicScanner::SonicScanner ( std::istream &_input, const char *_filename ):
     input ( _input ),
     filename ( CopyString(_filename) ),
     line ( 1 ),
@@ -146,7 +146,7 @@ SonicTokenType SonicScanner::ClassifySymbol ( const char *s )
         0
     };
 
-    for ( i=0; builtin[i]; ++i )
+    for ( int i=0; builtin[i]; ++i )
     {
         if ( strcmp(s,builtin[i]) == 0 )
             return STT_BUILTIN;
@@ -472,14 +472,14 @@ SonicParseException::SonicParseException (
 }
 
 
-ostream & operator<< ( ostream &output, const SonicParseException &e )
+std::ostream & operator<< ( std::ostream &output, const SonicParseException &e )
 {
-    output << "Error:  " << e.reason << endl;
+    output << "Error:  " << e.reason << std::endl;
     if ( e.nearToken.queryToken() )
     {
         output << "   near token '" << e.nearToken.queryToken() << "'  ";
         output << "  line " << e.nearToken.queryLine();
-        output << "  column " << e.nearToken.queryColumn() << endl;
+        output << "  column " << e.nearToken.queryColumn() << std::endl;
     }
 
     return output;
@@ -489,7 +489,7 @@ ostream & operator<< ( ostream &output, const SonicParseException &e )
 //------------------------------------------------------------------------
 
 
-ostream & operator << ( ostream &output, SonicTokenType t )
+std::ostream & operator << ( std::ostream &output, SonicTokenType t )
 {
     switch ( t )
     {
