@@ -10,6 +10,17 @@
 
     Revision history:
 
+1998 October 1 [Don Cross]
+    Now allow '?' to be first array dimension in function parameters.
+    This gets interpreted by the parser as being the same as 0.
+    In the generated C++ code, will now just have an empty pair
+    of brackets in the function parm type.
+    Removed blank line generated after each assignment statement.
+
+1998 September 29 [Don Cross]
+    Added support for array assignments.
+    Now generate type-casts only when needed in intrinsic function calls.
+
 1998 September 23 [Don Cross]
     Added code generation for new 'fft' pseudo-function.
 
@@ -145,6 +156,28 @@ void SonicParse_Statement_Repeat::generateCode ( std::ostream &o, Sonic_CodeGenC
 }
 
 
+void SonicParse_Statement_For::generateCode ( std::ostream &o, Sonic_CodeGenContext &x )
+{
+    x.indent ( o, "{\n" );
+    x.pushIndent();
+
+    init->generateCode ( o, x );
+    x.indent ( o, "while ( " );
+    condition->generateCode ( o, x );
+    o << " )\n";
+
+    x.indent ( o, "{\n" );
+    x.pushIndent();
+    loop->generateCode ( o, x );
+    update->generateCode ( o, x );
+    x.popIndent();
+    x.indent ( o, "}\n" );
+
+    x.popIndent();
+    x.indent ( o, "}\n" );
+}
+
+
 void SonicParse_Statement_While::generateCode ( std::ostream &o, Sonic_CodeGenContext &x )
 {
     x.indent ( o, "while ( " );
@@ -180,6 +213,8 @@ void SonicParse_Statement_Return::generateCode ( std::ostream &o, Sonic_CodeGenC
 
 void SonicParse_Statement_Assignment::generateCode ( std::ostream &o, Sonic_CodeGenContext &x )
 {
+    SonicType ltype = lvalue->determineType(*x.prog,x.func);
+
     if ( lvalue->queryIsWave() )
     {
         x.indent ( o, "{\n" );
@@ -377,6 +412,60 @@ void SonicParse_Statement_Assignment::generateCode ( std::ostream &o, Sonic_Code
 
         x.func->clearAllResetFlags();
     }
+    else if ( ltype == STYPE_ARRAY )
+    {
+        if ( op == "<<" )
+            throw SonicParseException ( "append operator '<<' is allowed only in wave assignments", op );
+
+        SonicType rtype = rvalue->determineType();
+        if ( rtype != STYPE_ARRAY )
+            throw SonicParseException ( "cannot assign a non-array to an array", rvalue->getFirstToken() );
+
+        // If the lvalue array is a function parameter, we can only assign to it
+        // safely if it is explicitly passed by reference using the '&' modifier.
+        // Otherwise, because the first dimension cardinality is not checked, the
+        // passed array needn't have the same size.
+
+        SonicParse_VarDecl *lvar = x.func->findSymbol ( lvalue->queryVarName(), false );
+        if ( lvar && lvar->queryIsFunctionParm() && !ltype.isReference() )
+            throw SonicParseException ( "cannot perform array assignment on non-reference function argument", lvalue->queryVarName() );
+
+        int numDimensions = rtype.queryNumDimensions();
+        x.indent ( o, "{\n" );
+        x.pushIndent();
+        x.indent ( o, "// " );
+        x.generatingComment = true;
+        o << lvalue->queryVarName().queryToken() << " " << op.queryToken() << " ";
+        rvalue->generateCode ( o, x );
+        o << ";\n";
+        x.generatingComment = false;
+        int tag [MAX_SONIC_ARRAY_DIMENSIONS];
+        const int *rdim = rtype.queryDimensionArray();
+        for ( int d=0; d < numDimensions; ++d )
+        {
+            tag[d] = (x.nextTempTag)++;
+            x.indent ( o, "for ( int " );
+            char t[32];
+            sprintf ( t, "%s%d", TEMPORARY_PREFIX, tag[d] );
+            o << t << "=0; " << t << "<" << rdim[d] << "; ++" << t << " )\n";
+            x.pushIndent();
+        }
+        x.indent ( o, LOCAL_SYMBOL_PREFIX );
+        o << lvalue->queryVarName().queryToken();
+        for ( int d=0; d < numDimensions; ++d )
+            o << "[" << TEMPORARY_PREFIX << tag[d] << "]";
+
+        o << " " << op.queryToken() << " ";
+        rvalue->generateCode ( o, x );
+        for ( int d=0; d < numDimensions; ++d )
+            o << "[" << TEMPORARY_PREFIX << tag[d] << "]";
+
+        o << ";\n";
+        for ( int d=0; d <= numDimensions; ++d )
+            x.popIndent();
+
+        x.indent ( o, "}\n" );
+    }
     else    // it must be a simple assignment which can be expressed directly in C++
     {
         if ( op == "<<" )
@@ -384,13 +473,25 @@ void SonicParse_Statement_Assignment::generateCode ( std::ostream &o, Sonic_Code
 
         x.indent ( o, LOCAL_SYMBOL_PREFIX );
         o << lvalue->queryVarName().queryToken();
+
+        SonicParse_Expression *indexList = lvalue->queryIndexList();
+        while ( indexList )
+        {
+            o << "[";
+            bool needCast = indexList->determineType() != STYPE_INTEGER;
+            if ( needCast )
+                o << "int(";
+            indexList->generateCode(o,x);
+            if ( needCast )
+                o << ")";
+            o << "]";
+            indexList = indexList->queryNext();
+        }
+
         o << " " << op.queryToken() << " ";
         rvalue->generateCode ( o, x );
         o << ";\n";
     }
-
-    if ( queryNext() )
-        o << "\n";
 }
 
 
@@ -411,6 +512,9 @@ void SonicParse_Function::generatePrototype ( std::ostream &o, Sonic_CodeGenCont
 
         case STYPE_VECTOR:
             throw SonicParseException ( "internal error: function return type was 'vector'", name );
+
+        case STYPE_ARRAY:
+            throw SonicParseException ( "functions are not allowed to return arrays", name );
 
         default:
             throw SonicParseException ( "internal error: undefined function return type", name );
@@ -492,6 +596,19 @@ void SonicParse_VarDecl::generateCode ( std::ostream &o, Sonic_CodeGenContext &x
         }
         break;
 
+        case STYPE_ARRAY:
+        {
+            switch ( type.queryElementType() )
+            {
+                case STYPE_INTEGER:     o << "long ";       break;
+                case STYPE_REAL:        o << "double ";     break;
+                case STYPE_BOOLEAN:     o << "int ";        break;
+                default:
+                    throw SonicParseException ( "arrays of this type not allowed", name );
+            }
+        }
+        break;
+
         case STYPE_IMPORT:
         {
             const SonicToken *iname = type.queryImportName();
@@ -519,10 +636,29 @@ void SonicParse_VarDecl::generateCode ( std::ostream &o, Sonic_CodeGenContext &x
         if ( !x.insideFunctionParms )
             throw SonicParseException ( "internal error: found reference type outside of function parms", name );
 
-        o << "&";
+        if ( type != STYPE_ARRAY )
+            o << "&";
     }
 
     o << LOCAL_SYMBOL_PREFIX << name.queryToken();
+
+    if ( type == STYPE_ARRAY )
+    {
+        const int numDimensions = type.queryNumDimensions();
+        const int *dimArray = type.queryDimensionArray();
+        for ( int i=0; i < numDimensions; ++i )
+        {
+            if ( dimArray[i] == 0 )
+            {
+                if ( i > 0 )
+                    throw SonicParseException ( "internal error: zero size found after first dimension", name );
+
+                o << "[]";
+            }
+            else
+                o << "[" << dimArray[i] << "]";
+        }
+    }
 
     if ( init )
     {
@@ -532,6 +668,10 @@ void SonicParse_VarDecl::generateCode ( std::ostream &o, Sonic_CodeGenContext &x
         if ( type == STYPE_WAVE )
         {
             throw SonicParseException ( "wave variable cannot have initializer", name );
+        }
+        else if ( type == STYPE_ARRAY )
+        {
+            throw SonicParseException ( "array variable cannot have initializer", name );
         }
         else if ( type == STYPE_IMPORT )
         {
@@ -575,6 +715,15 @@ void SonicParse_VarDecl::generateCode ( std::ostream &o, Sonic_CodeGenContext &x
             // supply constructor parameters
 
             o << " ( \"\", \"" << name.queryToken() << "\", SamplingRate, NumChannels )";
+        }
+        else if ( type == STYPE_ARRAY )
+        {
+            // zero out all arrays to initialize them...
+
+            o << ";\n";
+            x.indent ( o, "memset ( " );
+            o << LOCAL_SYMBOL_PREFIX << name.queryToken() << ", 0, sizeof(";
+            o << LOCAL_SYMBOL_PREFIX << name.queryToken() << ") )";
         }
     }
 }
@@ -788,22 +937,39 @@ void SonicParse_Expression_WaveExpr::generateCode ( std::ostream &o, Sonic_CodeG
         x.bracketer = &waveName;
 
         SonicType indexType = iterm->determineType();
+        SonicType channelType = cterm->determineType();
 
         if ( x.prog->queryInterpolateFlag() && indexType != STYPE_INTEGER )
         {
-            o << LOCAL_SYMBOL_PREFIX << waveName.queryToken() << ".interp(int(";
+            o << LOCAL_SYMBOL_PREFIX << waveName.queryToken() << ".interp(";
+            if ( channelType != STYPE_INTEGER )
+                o << "int(";
             cterm->generateCode ( o, x );
-            o << "), double(";
+            if ( channelType != STYPE_INTEGER )
+                o << ")";
+            o << ", ";
+            if ( indexType != STYPE_REAL )
+                o << "double(";
             iterm->generateCode ( o, x );
-            o << "), countdown)";
+            if ( indexType != STYPE_REAL )
+                o << ")";
+            o << ", countdown)";
         }
         else
         {
-            o << LOCAL_SYMBOL_PREFIX << waveName.queryToken() << ".fetch(int(";
+            o << LOCAL_SYMBOL_PREFIX << waveName.queryToken() << ".fetch(";
+            if ( channelType != STYPE_INTEGER )
+                o << "int(";
             cterm->generateCode ( o, x );
-            o << "), long(";
+            if ( channelType != STYPE_INTEGER )
+                o << ")";
+            o << ", ";
+            if ( indexType != STYPE_INTEGER )
+                o << "long(";
             iterm->generateCode ( o, x );
-            o << "), countdown)";
+            if ( indexType != STYPE_INTEGER )
+                o << ")";
+            o << ", countdown)";
         }
 
         x.bracketer = saveBracketer;
@@ -862,6 +1028,32 @@ void SonicParse_Expression_Constant::generatePreChannelLoopCode (
 }
 
 
+void SonicParse_Expression_ArraySubscript::generateCode ( std::ostream &o, Sonic_CodeGenContext &x )
+{
+    if ( x.generatingComment )
+    {
+        o << arrayVarName.queryToken() << "[";
+        for ( SonicParse_Expression *ip = indexList; ip; ip = ip->queryNext() )
+        {
+            ip->generateCode(o,x);
+            if ( ip->queryNext() )
+                o << ", ";
+        }
+        o << "]";
+    }
+    else
+    {
+        o << LOCAL_SYMBOL_PREFIX << arrayVarName.queryToken();
+        for ( SonicParse_Expression *ip = indexList; ip; ip = ip->queryNext() )
+        {
+            o << "[";
+            ip->generateCode(o,x);
+            o << "]";
+        }
+    }
+}
+
+
 void SonicParse_Expression_FunctionCall::generateCode ( std::ostream &o, Sonic_CodeGenContext &x )
 {
     if ( !x.generatingComment )
@@ -877,12 +1069,13 @@ void SonicParse_Expression_FunctionCall::generateCode ( std::ostream &o, Sonic_C
     o << name.queryToken() << "(";
     for ( SonicParse_Expression *pp = parmList; pp; pp = pp->queryNext() )
     {
-        if ( needDoubleCast )
+        const bool thisCast = needDoubleCast && pp->determineType() != STYPE_REAL;
+        if ( thisCast )
             o << "double(";
 
         pp->generateCode ( o, x );
 
-        if ( needDoubleCast )
+        if ( thisCast )
             o << ")";
 
         if ( pp->queryNext() )
@@ -916,6 +1109,24 @@ void SonicParse_Expression_FunctionCall::generatePreSampleLoopCode (
 
     for ( SonicParse_Expression *pp = parmList; pp; pp = pp->queryNext() )
         pp->generatePreSampleLoopCode(o,x);
+}
+
+
+void SonicParse_Expression_ArraySubscript::generatePreSampleLoopCode (
+    std::ostream &o,
+    Sonic_CodeGenContext &x )
+{
+    for ( SonicParse_Expression *ip = indexList; ip; ip = ip->queryNext() )
+        ip->generatePreSampleLoopCode(o,x);
+}
+
+
+void SonicParse_Expression_ArraySubscript::generatePreChannelLoopCode (
+    std::ostream &o,
+    Sonic_CodeGenContext &x )
+{
+    for ( SonicParse_Expression *ip = indexList; ip; ip = ip->queryNext() )
+        ip->generatePreChannelLoopCode(o,x);
 }
 
 

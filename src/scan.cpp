@@ -10,6 +10,17 @@
     called, it automatically pops the top token off the stack if 
     any are there and returns that token.)
 
+Revision history:
+
+1998 October 2 [Don Cross]
+    Adding support for multiple source files.
+
+1998 September 29 [Don Cross]
+    Fixed bug:  double-slash comments on consecutive lines were getting
+    messed up in SonicScanner::skipWhitespace().  I have for once 
+    found a good use for the 'continue' statement to hack this into
+    correctness.    
+
 =======================================================================*/
 #include <iostream>
 #include <new.h>
@@ -24,7 +35,8 @@ SonicToken::SonicToken():
     tokenType ( STT_UNKNOWN ),
     token ( 0 ),
     line ( 0 ),
-    column ( 0 )
+    column ( 0 ),
+    sourceFile ( 0 )
 {
 }
 
@@ -33,7 +45,8 @@ SonicToken::SonicToken ( const SonicToken &other ):
     tokenType ( other.tokenType ),
     token ( CopyString(other.token) ),
     line ( other.line ),
-    column ( other.column )
+    column ( other.column ),
+    sourceFile ( other.sourceFile )
 {
 }
 
@@ -53,6 +66,7 @@ const SonicToken & SonicToken::operator= ( const SonicToken &other )
         tokenType = other.tokenType;
         line = other.line;
         column = other.column;
+        sourceFile = other.sourceFile;
     }
 
     return *this;
@@ -70,6 +84,7 @@ void SonicToken::define (
     line = _line;
     column = _column;
     tokenType = _tokenType;
+    sourceFile = SonicScanner::GetCurrentSourceFilename();
 }
 
 
@@ -85,6 +100,10 @@ bool SonicToken::operator== ( const char *s ) const
 //-----------------------------------------------------------------------
 
 
+char *SonicScanner::FilenameTable [MAX_SONIC_SOURCE_FILES];
+int SonicScanner::NumFilenames = 0;
+
+
 SonicScanner::SonicScanner ( std::istream &_input, const char *_filename ):
     input ( _input ),
     filename ( CopyString(_filename) ),
@@ -93,12 +112,26 @@ SonicScanner::SonicScanner ( std::istream &_input, const char *_filename ):
     charStackTop ( -1 ),
     tokenStackTop ( -1 )
 {
+    if ( SonicScanner::NumFilenames >= MAX_SONIC_SOURCE_FILES )
+        throw "Too many Sonic source files!";
+
+    SonicScanner::FilenameTable [SonicScanner::NumFilenames++] = CopyString(_filename);
 }
 
 
 SonicScanner::~SonicScanner()
 {
     DeleteString (filename);
+}
+
+
+const char *SonicScanner::GetCurrentSourceFilename()
+{
+    int index = SonicScanner::NumFilenames - 1;
+    if ( index < 0 )
+        throw "Attempt to access source filename when there was none!";
+
+    return SonicScanner::FilenameTable[index];
 }
 
 
@@ -361,10 +394,11 @@ bool SonicScanner::skipWhitespace()
             if ( tc2.c == '/' )
             {
                 do { tc = get(); } while ( tc.c != '\n' && tc.c != EOF );
-                tc = peek();
+                continue;
             }
             else if ( tc2.c == '*' )
             {
+                bool startOver = false;
                 for(;;)
                 {
                     const char *unterm = "Unterminated '/*' comment at EOF";
@@ -378,11 +412,14 @@ bool SonicScanner::skipWhitespace()
                             throw SonicParseException ( unterm );
                         else if ( tc.c == '/' )
                         {
-                            tc = peek();
+                            startOver = true;
                             break;
                         }
                     }
                 }
+
+                if ( startOver )
+                    continue;
             }
             else
             {
@@ -477,9 +514,14 @@ std::ostream & operator<< ( std::ostream &output, const SonicParseException &e )
     output << "Error:  " << e.reason << std::endl;
     if ( e.nearToken.queryToken() )
     {
-        output << "   near token '" << e.nearToken.queryToken() << "'  ";
-        output << "  line " << e.nearToken.queryLine();
+        const char *source = e.nearToken.querySourceFilename();
+        if ( source )
+        {
+            output << "Source file:  '" << source << "'  ";
+        }
+        output << "line " << e.nearToken.queryLine();
         output << "  column " << e.nearToken.queryColumn() << std::endl;
+        output << "near token '" << e.nearToken.queryToken() << "'  ";
     }
 
     return output;

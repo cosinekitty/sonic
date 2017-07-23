@@ -6,6 +6,18 @@
 
     Revision history:
 
+1998 November 10 [Don Cross]
+    Added code to clean up orphaned temporary files in
+    SonicWave::openForWrite().
+
+1998 November 9 [Don Cross]
+    Fixed bugs with reading at end of file (was incorrectly 
+    returning zeroes, erasing data!)
+
+1998 September 26 [Don Cross]
+    Greatly increased inBufferSize cache size from 256 samples to
+    64K samples.  This makes many Sonic programs run much faster.
+
 1998 September 23 [Don Cross]
     Adding support for fft filters.
 
@@ -103,7 +115,7 @@ SonicWave::SonicWave (
         samplesWritten ( 0 ),
         dataIn_OutBuffer ( 0 ),
         inBuffer ( 0 ),
-        inBufferSize ( _requiredNumChannels * 256 ),
+        inBufferSize ( _requiredNumChannels * (64*1024) ),
         inBufferBaseIndex ( 0 ),
         dataIn_InBuffer ( 0 ),
         nextReadIndex ( 0 )
@@ -373,6 +385,18 @@ void SonicWave::openForWrite()
     }
 
     mode = SWM_WRITE;
+
+    // Clean up orphaned temp files...
+
+    if ( inFilename && *inFilename )
+    {
+        const char *ext = strrchr ( inFilename, '.' );
+        if ( ext && strcmp ( ext, ".tmp" ) == 0 )
+        {
+            remove ( inFilename );
+            DDC_DeleteString ( inFilename );
+        }       
+    }
 }
 
 
@@ -396,7 +420,12 @@ void SonicWave::openForAppend()
         exit(1);
     }
 
-    DDC_DeleteString ( outFilename );
+    if ( outFilename )
+    {
+        remove ( outFilename );
+        DDC_DeleteString ( outFilename );
+    }
+
     outFilename = inFilename;
     inFilename = 0;
 
@@ -495,8 +524,20 @@ void SonicWave::read ( double sample[] )
             for ( int i=0; i < dataIn_InBuffer; ++i )
                 inBuffer[i] = float ( inWaveBuffer[i] / 32768.0 );
 
-            for ( int c=0; c < requiredNumChannels; ++c )
-                sample[c] = float ( inBuffer[c] );
+            if ( requiredNumChannels > dataIn_InBuffer )
+            {
+                int c = 0;
+                for (; c < dataIn_InBuffer; ++c )
+                    sample[c] = double ( inBuffer[c] );
+
+                for ( ; c < requiredNumChannels; ++c )
+                    sample[c] = double(0);
+            }
+            else
+            {
+                for ( int c=0; c < requiredNumChannels; ++c )
+                    sample[c] = double ( inBuffer[c] );
+            }
         }
         else
         {
@@ -518,15 +559,19 @@ void SonicWave::read ( double sample[] )
 
             eof_flag = (dataIn_InBuffer < inBufferSize);
 
-            if ( eof_flag )
+            if ( requiredNumChannels > dataIn_InBuffer )
             {
-                for ( int c=0; c < requiredNumChannels; ++c )
+				int c = 0;
+                for (; c < dataIn_InBuffer; ++c )
+                    sample[c] = double(inBuffer[c]);
+
+                for ( ; c < requiredNumChannels; ++c )
                     sample[c] = double(0);
             }
             else
             {
                 for ( int c=0; c < requiredNumChannels; ++c )
-                    sample[c] = inBuffer[c];
+                    sample[c] = double(inBuffer[c]);
             }
         }
         else
@@ -879,11 +924,11 @@ void SonicWave::EraseAllTempFiles()
 
 double Sonic_Noise ( double amplitude )
 {
-    static unsigned long array[] = 
+    static unsigned long array[] =
     {
-        0x3847a384,     
-        0x56af9029,     
-        0xc3852109, 
+        0x3847a384,
+        0x56af9029,
+        0xc3852109,
         0x01835567,
         0x58927374,
         0x77733935,
@@ -950,7 +995,7 @@ static const double Pi = 4.0 * atan(1.0);
 
 
 Sonic_FFT_Filter::Sonic_FFT_Filter ( 
-    int _numChannels, 
+    int _numChannels,
     long _samplingRate,
     long _fftSize, 
     Sonic_TransferFunction _xfer,
