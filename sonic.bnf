@@ -1,0 +1,49 @@
+program ::=  {import_decl} {parm_override} program_body {function_body}
+
+import_decl ::=  "import" name { "," name } "from" string_constant ";"
+
+parm_override ::=  parm_name "=" integer_const ";"
+parm_name ::=  "r" | "m"
+
+program_body ::=  "program" name "(" func_args ")"
+                  "{" {var_decl} {statement} "}"
+
+statement ::=  [function_call] ";" | assignment | if_body | while_body | repeat_body |
+               "return" [b0] ";" |
+               "{" {statement} "}"
+
+var_decl ::= "var" var_spec { "," var_spec } ":" type ";"
+var_spec ::= name [ var_init ]
+
+var_init ::= "=" b0 | "(" [ b0 { "," b0 } ] ")"
+
+type ::=  "real" | "integer" | "boolean" | "wave"
+function_call ::=  name "(" [ expr { , expr } ] ")"
+
+function_body ::=  "function" name "(" func_args ")" [ ":" type ]
+                    "{" {var_decl} {statement} "}"
+
+func_args ::=  [ arg { "," arg } ]
+arg ::=  name ":" type
+assignment ::=  lvalue assign_op expr ";"
+lvalue ::=  name [ "[" "c" "," "i" [ ":" term ] "]" ]
+assign_op ::=  "=" | "<<" | "+=" | "-=" | "*=" | "/=" | "%=" 
+expr ::=  b0 | "{" b0 {"," b0} "}"
+b0 ::=  b1 { "|" b1 }
+b1 ::=  b2 { "&" b2 }
+b2 ::=  term { relop term }
+relop ::=  "==" | "<" | "<=" | ">" | ">=" | "!=" | "<>"
+term ::=  t1 { op1 t1 }
+op1 ::=  "+" | "-"
+t1 ::=  t2 { op2 t2 }
+op2 ::=  "*" | "/" | "%"
+t2 ::=  t3 [ "^" t2 ]
+t3 ::=  constant | var_term | function_call | "(" b0 ")" | "!" t3 | "-" t3 | "$"
+var_term ::=  name [var_qualifier]
+var_qualifier ::= "." wave_field | "[" term { "," term } "]" 
+wave_field ::= "n" | "r" | "m" | "max"
+constant ::=  numeric_constant | string_constant | builtin
+builtin ::= "true" | "false" | "pi" | "e" | "i" | "c" | "r" | "n" | "m" | "t"
+if_body ::=  "if" "(" b0 ")" statement [ "else" statement ]
+while_body ::=  "while" "(" b0 ")" statement
+repeat_body ::= "repeat" "(" term ")" statement
