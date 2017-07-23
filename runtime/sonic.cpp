@@ -572,8 +572,8 @@ void SonicWave::read ( double sample[] )
 
             if ( requiredNumChannels > dataIn_InBuffer )
             {
-				int c = 0;
-                for (; c < dataIn_InBuffer; ++c )
+				int c;
+                for (c=0; c < dataIn_InBuffer; ++c )
                     sample[c] = double(inBuffer[c]);
 
                 for ( ; c < requiredNumChannels; ++c )
@@ -1133,6 +1133,8 @@ double Sonic_FFT_Filter::filter (
     int channel, 
     double value )
 {
+    int i;
+
     if ( index >= fftSize )
     {
         // We've hit the trigger point!
@@ -1147,7 +1149,7 @@ double Sonic_FFT_Filter::filter (
             fft_double ( fftSize, 0, inBuffer[c], 0, freqReal, freqImag );   // forward FFT
 
             double freq = double(0);
-            for ( int i=0; i <= halfSize; ++i )
+            for ( i=0; i <= halfSize; ++i )
             {
                 (*xfer) ( freq, freqReal[i], freqImag[i] );
                 freq += delta_freq;
@@ -1157,13 +1159,13 @@ double Sonic_FFT_Filter::filter (
             {
                 // scoot frequencies up...
 
-                for ( int i=halfSize; i >= binShift; --i )
+                for ( i=halfSize; i >= binShift; --i )
                 {
                     freqReal[i] = freqReal[i-binShift];
                     freqImag[i] = freqImag[i-binShift];
                 }
 
-                for ( int i=halfSize; i >= 0; --i )
+                for ( ; i >= 0; --i )
                     freqReal[i] = freqImag[i] = double(0);
             }
             else if ( binShift < 0 )
@@ -1171,13 +1173,13 @@ double Sonic_FFT_Filter::filter (
                 // scoot frequencies down...
 
                 long limit = halfSize + binShift;
-                for ( int i=0; i <= limit; ++i )
+                for ( i=0; i <= limit; ++i )
                 {
                     freqReal[i] = freqReal[i-binShift];
                     freqImag[i] = freqImag[i-binShift];
                 }
 
-                for ( int i=0; i <= halfSize; ++i )
+                for ( ; i <= halfSize; ++i )
                     freqReal[i] = freqImag[i] = double(0);
             }
 
@@ -1185,7 +1187,7 @@ double Sonic_FFT_Filter::filter (
             // we know that the negative frequency components are just
             // the complex conjugates of the positive frequency components.
 
-            for ( int i = halfSize + 1; i < fftSize; ++i )
+            for ( i = halfSize + 1; i < fftSize; ++i )
             {
                 freqReal[i] =  freqReal[fftSize - i];
                 freqImag[i] = -freqImag[fftSize - i];
@@ -1193,7 +1195,7 @@ double Sonic_FFT_Filter::filter (
 
             fft_double ( fftSize, 1, freqReal, freqImag, outBuffer2[c], timeImag );   // inverse FFT
 
-            for ( int i=0; i < halfSize; ++i )
+            for ( i=0; i < halfSize; ++i )
                 inBuffer[c][i] = inBuffer[c][i + halfSize];
         }       
 

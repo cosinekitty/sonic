@@ -213,6 +213,7 @@ void SonicParse_Statement_Return::generateCode ( std::ostream &o, Sonic_CodeGenC
 
 void SonicParse_Statement_Assignment::generateCode ( std::ostream &o, Sonic_CodeGenContext &x )
 {
+    int i;
     SonicType ltype = lvalue->determineType(*x.prog,x.func);
 
     if ( lvalue->queryIsWave() )
@@ -250,7 +251,7 @@ void SonicParse_Statement_Assignment::generateCode ( std::ostream &o, Sonic_Code
             numOccurrences );
 
         bool modify = false;
-        for ( int i=1; i < numWaveSymbols && !modify; ++i )
+        for ( i=1; i < numWaveSymbols && !modify; ++i )
             if ( *waveSymbol[i] == "$" )
                 modify = true;
 
@@ -272,7 +273,7 @@ void SonicParse_Statement_Assignment::generateCode ( std::ostream &o, Sonic_Code
             modify = true;
         }
 
-        for ( int i=1; i < numWaveSymbols; i++ )
+        for ( i=1; i < numWaveSymbols; i++ )
         {
             if ( *waveSymbol[i] != "$" )
             {
@@ -394,7 +395,7 @@ void SonicParse_Statement_Assignment::generateCode ( std::ostream &o, Sonic_Code
         x.popIndent();
         x.indent ( o, "}\n" );
 
-        for ( int i=0; i < numWaveSymbols; i++ )
+        for ( i=0; i < numWaveSymbols; i++ )
         {
             if ( *waveSymbol[i] != "$" )
             {
@@ -441,7 +442,8 @@ void SonicParse_Statement_Assignment::generateCode ( std::ostream &o, Sonic_Code
         x.generatingComment = false;
         int tag [MAX_SONIC_ARRAY_DIMENSIONS];
         const int *rdim = rtype.queryDimensionArray();
-        for ( int d=0; d < numDimensions; ++d )
+        int d;
+        for ( d=0; d < numDimensions; ++d )
         {
             tag[d] = (x.nextTempTag)++;
             x.indent ( o, "for ( int " );
@@ -452,16 +454,16 @@ void SonicParse_Statement_Assignment::generateCode ( std::ostream &o, Sonic_Code
         }
         x.indent ( o, LOCAL_SYMBOL_PREFIX );
         o << lvalue->queryVarName().queryToken();
-        for ( int d=0; d < numDimensions; ++d )
+        for ( d=0; d < numDimensions; ++d )
             o << "[" << TEMPORARY_PREFIX << tag[d] << "]";
 
         o << " " << op.queryToken() << " ";
         rvalue->generateCode ( o, x );
-        for ( int d=0; d < numDimensions; ++d )
+        for ( d=0; d < numDimensions; ++d )
             o << "[" << TEMPORARY_PREFIX << tag[d] << "]";
 
         o << ";\n";
-        for ( int d=0; d <= numDimensions; ++d )
+        for ( d=0; d <= numDimensions; ++d )
             x.popIndent();
 
         x.indent ( o, "}\n" );
