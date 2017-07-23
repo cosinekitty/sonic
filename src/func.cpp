@@ -203,18 +203,18 @@ SonicParse_VarDecl *SonicParse_Function::findSymbol (
 }
 
 
-int SonicParse_Function::countInstances ( const SonicToken &name ) const
+int SonicParse_Function::countInstances ( const SonicToken &otherName ) const
 {
     int count = 0;
     for ( SonicParse_VarDecl *vp = varList; vp; vp = vp->next )
     {
-        if ( vp->queryName() == name )
+        if ( vp->queryName() == otherName )
             ++count;
     }
 
     for ( SonicParse_VarDecl *vp = parmList; vp; vp = vp->next )
     {
-        if ( vp->queryName() == name )
+        if ( vp->queryName() == otherName )
             ++count;
     }
 

@@ -94,7 +94,6 @@ SonicParse_Function *SonicParse_Program::findFunction ( const SonicToken &funcNa
         return programBody;
 
     throw SonicParseException ( "undefined function", funcName );
-    return 0;
 }
 
 
@@ -338,10 +337,10 @@ void SonicParse_Program::validate()
     if ( !programBody )
         throw SonicParseException ( "code contains no program body" );
 
-    programBody->validate ( *this );
+    programBody->validate();
 
     for ( SonicParse_Function *fp = functionBodyList; fp; fp = fp->next )
-        fp->validate ( *this );
+        fp->validate();
 
     for ( SonicParse_VarDecl *vp = globalVars; vp; vp = vp->queryNext() )
     {

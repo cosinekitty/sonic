@@ -851,7 +851,7 @@ void SonicParse_Expression_OldData::getWaveSymbolList (
     const SonicToken *waveSymbol[],
     int maxWaveSymbols,
     int &numSoFar,
-    int &numOccurrences )
+    int & /*numOccurrences*/ )
 {
     Append ( waveSymbol, maxWaveSymbols, numSoFar, dollarSign );
 }
@@ -861,7 +861,7 @@ void SonicParse_Expression_WaveField::getWaveSymbolList (
     const SonicToken *waveSymbol[], 
     int maxWaveSymbols,
     int &numSoFar,
-    int &numOccurrences )
+    int & /*numOccurrences*/ )
 {
     Append ( waveSymbol, maxWaveSymbols, numSoFar, varName );
 }
@@ -879,8 +879,6 @@ SonicType SonicParse_Expression_Builtin::determineType() const
         return STYPE_INTEGER;
 
     throw SonicParseException ( "internal error: cannot determine built-in type", name );
-
-    return STYPE_UNDEFINED;
 }
 
 

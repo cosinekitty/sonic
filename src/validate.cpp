@@ -210,7 +210,7 @@ void SonicParse_VarDecl::validate (
 }
 
 
-void SonicParse_Function::validate ( SonicParse_Program &prog )
+void SonicParse_Function::validate()
 {
     // First, make sure the function name is unique...
 
@@ -232,13 +232,13 @@ void SonicParse_Function::validate ( SonicParse_Program &prog )
 
     for ( SonicParse_VarDecl *vp = parmList; vp; vp = vp->next )
     {
-        validateUniqueSymbol ( prog, vp->queryName() );
+        validateUniqueSymbol ( vp->queryName() );
         vp->validate ( prog, this );
     }
 
     for ( SonicParse_VarDecl *vp = varList; vp; vp = vp->next )
     {
-        validateUniqueSymbol ( prog, vp->queryName() );
+        validateUniqueSymbol ( vp->queryName() );
         vp->validate ( prog, this );
     }
 
@@ -247,32 +247,30 @@ void SonicParse_Function::validate ( SonicParse_Program &prog )
 }
 
 
-void SonicParse_Function::validateUniqueSymbol ( 
-    SonicParse_Program &prog, 
-    const SonicToken &name )
+void SonicParse_Function::validateUniqueSymbol(const SonicToken &otherName)
 {
-    int numFound = countInstances(name) + prog.countInstances(name);
+    int numFound = countInstances(otherName) + prog.countInstances(otherName);
 
     for ( SonicParse_Function *fp = prog.queryFunctionList(); fp; fp = fp->next )
     {
-        if ( fp->name == name )
+        if ( fp->name == otherName )
             ++numFound;
     }
 
     for ( SonicParse_Function *fp = prog.queryImportList(); fp; fp = fp->next )
     {
-        if ( fp->name == name )
+        if ( fp->name == otherName )
             ++numFound;
     }
 
 	SonicParse_Function *fp = prog.queryProgramBody();
-    if ( fp->name == name )
+    if ( fp->name == otherName )
         ++numFound;
 
     if ( numFound == 0 )
-        throw SonicParseException ( "symbol not defined", name );
+        throw SonicParseException ( "symbol not defined", otherName );
     else if ( numFound > 1 )
-        throw SonicParseException ( "symbol defined more than once", name );
+        throw SonicParseException ( "symbol defined more than once", otherName );
 }
 
 
@@ -444,10 +442,10 @@ void SonicParse_Expression_FunctionCall::validate (
 
                 if ( vp->queryType().isReference() )
                 {
-                    SonicExpressionType exprType = ep->queryExpressionType();
+                    SonicExpressionType epExprType = ep->queryExpressionType();
 
                     // Make sure the parameter is a valid lvalue.
-                    if ( exprType != ETYPE_VARIABLE && exprType != ETYPE_ARRAY_SUBSCRIPT )
+                    if ( epExprType != ETYPE_VARIABLE && epExprType != ETYPE_ARRAY_SUBSCRIPT )
                     {
                         throw SonicParseException (
                             "Must pass a variable as reference argument to function",
@@ -481,8 +479,8 @@ void SonicParse_Expression_FunctionCall::validate (
 
 
 void SonicParse_Expression_Builtin::validate ( 
-    SonicParse_Program &program, 
-    SonicParse_Function *func )
+    SonicParse_Program &, 
+    SonicParse_Function * )
 {
 }
 

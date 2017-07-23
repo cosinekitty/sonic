@@ -39,7 +39,6 @@ int main ( int argc, char *argv[] )
         return 1;
     }
 
-    int retcode = 0;
     try
     {
         SonicParse_Program program;

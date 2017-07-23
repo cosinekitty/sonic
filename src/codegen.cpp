@@ -1007,7 +1007,7 @@ void SonicParse_Expression_WaveExpr::generatePreChannelLoopCode (
 }
 
 
-void SonicParse_Expression_Constant::generateCode ( std::ostream &o, Sonic_CodeGenContext &x )
+void SonicParse_Expression_Constant::generateCode ( std::ostream &o, Sonic_CodeGenContext & )
 {
     if ( type == STYPE_STRING )
         o << '"' << value.queryToken() << '"';
@@ -1017,15 +1017,15 @@ void SonicParse_Expression_Constant::generateCode ( std::ostream &o, Sonic_CodeG
 
 
 void SonicParse_Expression_Constant::generatePreSampleLoopCode ( 
-    std::ostream &o, 
-    Sonic_CodeGenContext &x )
+    std::ostream &, 
+    Sonic_CodeGenContext & )
 {
 }
 
 
 void SonicParse_Expression_Constant::generatePreChannelLoopCode ( 
-    std::ostream &o, 
-    Sonic_CodeGenContext &x )
+    std::ostream &, 
+    Sonic_CodeGenContext & )
 {
 }
 

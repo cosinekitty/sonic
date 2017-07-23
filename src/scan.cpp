@@ -189,12 +189,12 @@ SonicTokenType SonicScanner::ClassifySymbol ( const char *s )
 
 
 
-static void accept ( char *s, int len, int &index, char c )
+static void accept ( char *s, int len, int &index, int c )
 {
     if ( index >= len-1 )
         throw SonicParseException ( "token buffer overflow" );
 
-    s[index++] = c;
+    s[index++] = static_cast<char>(c);
     s[index] = '\0';
 }
 

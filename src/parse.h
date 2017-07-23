@@ -323,10 +323,10 @@ public:
     virtual void generatePreChannelLoopCode ( std::ostream &, Sonic_CodeGenContext & ) = 0;
 
     virtual void getWaveSymbolList ( 
-        const SonicToken *waveSymbol[], 
-        int maxWaveSymbols,
-        int &numSoFar,
-        int &numOccurrences )
+        const SonicToken * /*waveSymbol*/ [], 
+        int   /*maxWaveSymbols*/,
+        int & /*numSoFar*/,
+        int & /*numOccurrences*/ )
         {}
 
 protected:
@@ -1693,11 +1693,11 @@ public:
     static SonicParse_Function *Parse ( SonicScanner &, SonicParseContext & );
     const SonicToken &queryName() const { return name; }
     bool queryIsProgramBody() const { return isProgramBody; }
-    void validate ( SonicParse_Program & );
+    void validate();
     SonicType queryReturnType() const { return returnType; }
     SonicParse_VarDecl *findSymbol ( const SonicToken &symbol, bool forceFind ) const;
     int countInstances ( const SonicToken &name ) const;
-    void validateUniqueSymbol ( SonicParse_Program &, const SonicToken & );
+    void validateUniqueSymbol (const SonicToken &);
     SonicParse_VarDecl *queryParmList() const { return parmList; }
     virtual void generateCode ( std::ostream &, Sonic_CodeGenContext & );
     void generatePrototype ( std::ostream &, Sonic_CodeGenContext & );
