@@ -26,7 +26,6 @@
 ==========================================================================*/
 
 // Standard includes
-#include <io.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -49,6 +48,34 @@ UINT32 FourCC ( const char *ChunkName )
    }
 
    return retbuf;
+}
+
+
+long FileLength(FILE *infile)
+{
+    if (!infile)
+        return -1L;
+
+    // Remember the original offset into the file.
+    long originalPosition = ftell(infile);
+    if (originalPosition < 0)
+        return -1L;
+
+    // Seek to end of file.
+    if (fseek(infile, 0L, SEEK_END))
+        return -1L;
+
+    // Ask what our current position is to determine the file's length.
+    long length = ftell(infile);
+    if (length < 0)
+        return -1L;
+
+    // Restore the original position in the file.
+    if (fseek(infile, originalPosition, SEEK_SET))
+        return -1L;
+
+    // Report file length back to caller.
+    return length;
 }
 
 
@@ -97,7 +124,7 @@ DDCRET RiffFile::Open ( const char *Filename, RiffFileMode NewMode )
                  if ( fwrite ( &riff_header, sizeof(riff_header), 1, file ) != 1 )
                  {
                     fclose(file);
-                    unlink(Filename);
+                    remove(Filename);
                     fmode = RFM_UNKNOWN;
                     file = 0;
                  }
@@ -287,6 +314,12 @@ DDCRET WaveFile::OpenForRead ( const char *Filename )
 
    if ( retcode == DDC_SUCCESS )
    {
+      long filelength = FileLength(file);
+      if (filelength < 0)
+      {
+         return DDC_FILE_ERROR;
+      }
+      
       retcode = Expect ( "WAVE", 4 );
 
       if ( retcode == DDC_SUCCESS )
@@ -308,11 +341,8 @@ DDCRET WaveFile::OpenForRead ( const char *Filename )
             // Figure out number of samples from
             // file size, current file position, and
             // WAVE header.
-
-
-
             retcode = Read ( &pcm_data, sizeof(pcm_data) );
-            num_samples = filelength(fileno(file)) - CurrentFilePosition();
+            num_samples = filelength - CurrentFilePosition();
             num_samples /= NumChannels();
             num_samples /= (BitsPerSample() / 8);
          }

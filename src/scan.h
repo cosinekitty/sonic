@@ -107,7 +107,7 @@ public:
     static const char *GetCurrentSourceFilename();
 
 private:
-    static SonicTokenType SonicScanner::ClassifySymbol ( const char *s );
+    static SonicTokenType ClassifySymbol ( const char *s );
 
     bool skipWhitespace();      // eats whitespace and comments
     void pushChar ( const SonicTokenChar & );

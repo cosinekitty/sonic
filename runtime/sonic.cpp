@@ -23,7 +23,6 @@
 
 ==========================================================================*/
 #include <stdio.h>
-#include <io.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
@@ -191,7 +190,13 @@ void SonicWave::determineNumSamples()
     if ( !temp )
         return;
 
-    long fsize = filelength ( fileno(temp) );
+    long fsize = FileLength(temp);
+    if (fsize < 0)
+    {
+        fclose(temp);
+        return;
+    }
+    
     fread ( peek, 1, 4, temp );
     fclose (temp);
 
@@ -326,7 +331,13 @@ void SonicWave::openForRead()
         if ( maxValue < 1.0e-30 )
             maxValue = float(1);
 
-        long fsize = filelength ( fileno(inFile) );
+        long fsize = FileLength(inFile);
+        if (fsize < 0)
+        {
+            fprintf(stderr, "Error:  Unable to determine size of file '%s' for variable '%s'.\n", inFilename, varname);
+            exit(1);
+        }
+        
         inNumSamples = (fsize/sizeof(float) - 1) / requiredNumChannels;
     }
 

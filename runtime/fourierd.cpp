@@ -36,7 +36,7 @@ const double DDC_PI = 4.0 * atan(1.0);
 
 #define CHECKPOINTER(p)  CheckPointer(p,#p)
 
-static void CheckPointer ( void *p, char *name )
+static void CheckPointer ( void *p, const char *name )
 {
     if ( p == NULL )
     {

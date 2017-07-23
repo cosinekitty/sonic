@@ -21,6 +21,8 @@
 
 unsigned long FourCC ( const char *ChunkName );
 
+long FileLength(FILE *infile);      // returns total size of infile in bytes, or -1L on error.
+
 
 enum RiffFileMode
 {

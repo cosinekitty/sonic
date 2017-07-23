@@ -23,7 +23,6 @@ Revision history:
 
 =======================================================================*/
 #include <iostream>
-#include <new.h>
 #include <string.h>
 #include <stdio.h>
 #include <ctype.h>
@@ -542,7 +541,7 @@ std::ostream & operator << ( std::ostream &output, SonicTokenType t )
         case STT_CONSTANT:      output << "constant";       break;
         case STT_PUNCTUATION:   output << "punctuation";    break;
         case STT_STRING:        output << "string";         break;
-        default:                output << "???(" << int(t) << ")";
+        default:                output << "invalid(" << int(t) << ")";  break;
     }
 
     return output;
