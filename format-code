@@ -1,0 +1,2 @@
+#!/bin/bash
+astyle --style=allman --keep-one-line-statements ./src/*.cpp ./src/*.h ./runtime/*.cpp ./runtime/*.h
