@@ -1,7 +1,7 @@
 # This Project Requires CMake Version 3.0 or newer.
 cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
 
-project(Sonic)
+project(sonic)
 if(WIN32 AND MSVC)
 	# Newer Visual Studio Releases have issues with Old Code.
 	add_definitions(-D_CRT_SECURE_NO_WARNINGS)
@@ -28,7 +28,7 @@ add_library(SonicRuntime STATIC
 	)
 target_include_directories(SonicRuntime PUBLIC runtime)
 
-add_executable(Sonic
+add_executable(sonic
     src/codegen.cpp
     src/expr.cpp
     src/func.cpp
@@ -41,5 +41,5 @@ add_executable(Sonic
     src/validate.cpp
 )
 
-target_link_libraries(Sonic SonicRuntime)
-target_include_directories(Sonic PRIVATE Sonic)
+target_link_libraries(sonic SonicRuntime)
+

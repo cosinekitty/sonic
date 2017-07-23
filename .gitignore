@@ -2,9 +2,10 @@
 CMakeCache.txt
 CMakeFiles
 Makefile
+*.cmake
 
 # Linux executable
-/Sonic
+/sonic
 
 # Prerequisites
 *.d
