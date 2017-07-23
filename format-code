@@ -1,2 +1,8 @@
 #!/bin/bash
-astyle --style=allman --keep-one-line-statements ./src/*.cpp ./src/*.h ./runtime/*.cpp ./runtime/*.h
+astyle --style=allman \
+    --keep-one-line-statements \
+    --unpad-paren --pad-header \
+    --suffix=none \
+    --min-conditional-indent=0 \
+    ./src/*.cpp ./src/*.h ./runtime/*.cpp ./runtime/*.h
+

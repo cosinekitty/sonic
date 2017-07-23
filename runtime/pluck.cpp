@@ -22,26 +22,26 @@ http://www.hut.fi/Yksikot/Akustiikka/stringmodels/
 #include "pluck.h"
 
 
-i_PluckedString::i_PluckedString ( double _freqHz, double _coeff1, double _coeff2 ):
-    numChannels ( 0 ),
-    samplingRate ( 0 ),
-    freqHz ( _freqHz ),
-    arraySize ( 0 ),
-    currentSampleIndex ( 0 ),
-    cycle ( 0 ),
-    coeff1 ( _coeff1 ),
-    coeff2 ( _coeff2 )
+i_PluckedString::i_PluckedString(double _freqHz, double _coeff1, double _coeff2):
+    numChannels(0),
+    samplingRate(0),
+    freqHz(_freqHz),
+    arraySize(0),
+    currentSampleIndex(0),
+    cycle(0),
+    coeff1(_coeff1),
+    coeff2(_coeff2)
 {
-    if ( freqHz <= 0.0 )
+    if (freqHz <= 0.0)
     {
-        fprintf ( stderr,
-            "Error in PluckedString constructor:  freqHz = %lf is invalid.\n",
-            freqHz );
+        fprintf(stderr,
+                "Error in PluckedString constructor:  freqHz = %lf is invalid.\n",
+                freqHz);
 
         exit(1);
     }
 
-    for ( int i=0; i < MAX_SONIC_CHANNELS; ++i )
+    for (int i=0; i < MAX_SONIC_CHANNELS; ++i)
         array[i] = 0;
 }
 
@@ -52,13 +52,13 @@ i_PluckedString::~i_PluckedString()
 }
 
 
-void i_PluckedString::operator() ( double _freqHz )
+void i_PluckedString::operator()(double _freqHz)
 {
-    if ( _freqHz <= 0.0 )
+    if (_freqHz <= 0.0)
     {
-        fprintf ( stderr,
-            "Error in PluckedString constructor:  freqHz = %lf is invalid.\n",
-            _freqHz );
+        fprintf(stderr,
+                "Error in PluckedString constructor:  freqHz = %lf is invalid.\n",
+                _freqHz);
 
         exit(1);
     }
@@ -67,13 +67,13 @@ void i_PluckedString::operator() ( double _freqHz )
 }
 
 
-void i_PluckedString::reset ( int _numChannels, long _samplingRate )
+void i_PluckedString::reset(int _numChannels, long _samplingRate)
 {
-    if ( freqHz >= _samplingRate / 2.0 )
+    if (freqHz >= _samplingRate / 2.0)
     {
-        fprintf ( stderr,
-            "i_PluckedString::reset():  freqHz = %lf exceeds Nyquist frequency.\n",
-            freqHz );
+        fprintf(stderr,
+                "i_PluckedString::reset():  freqHz = %lf exceeds Nyquist frequency.\n",
+                freqHz);
 
         exit(1);
     }
@@ -83,19 +83,19 @@ void i_PluckedString::reset ( int _numChannels, long _samplingRate )
     numChannels = _numChannels;
     samplingRate = _samplingRate;
 
-    arraySize = int ( double(samplingRate) / freqHz );
-    for ( int c=0; c < numChannels; ++c )
+    arraySize = int (double(samplingRate) / freqHz);
+    for (int c=0; c < numChannels; ++c)
     {
         lastOutput[c] = double(0);
         double *ptr = array[c] = new double [arraySize];
-        if ( !ptr )
+        if (!ptr)
         {
-            fprintf ( stderr, "Error:  Out of memory in PluckedString::reset()\n" );
+            fprintf(stderr, "Error:  Out of memory in PluckedString::reset()\n");
             exit(1);
         }
 
-        for ( int i=0; i < arraySize; ++i )
-            *ptr++ = Sonic_Noise (1.0);
+        for (int i=0; i < arraySize; ++i)
+            *ptr++ = Sonic_Noise(1.0);
     }
 
     currentSampleIndex = 0;
@@ -103,20 +103,20 @@ void i_PluckedString::reset ( int _numChannels, long _samplingRate )
 }
 
 
-double i_PluckedString::operator() ( int channel, long index )
+double i_PluckedString::operator()(int channel, long index)
 {
-    if ( index < 0 )
+    if (index < 0)
         return 0;       // allow delay
 
-    if ( index != currentSampleIndex )
+    if (index != currentSampleIndex)
     {
         // advance the state of the simulation
         currentSampleIndex = index;
 
-        if ( ++cycle >= arraySize )
+        if (++cycle >= arraySize)
             cycle = 0;
 
-        for ( int c=0; c < numChannels; ++c )
+        for (int c=0; c < numChannels; ++c)
         {
             double current = array[c][cycle];
             array[c][cycle] = coeff1*lastOutput[c] + coeff2*current;
@@ -130,9 +130,9 @@ double i_PluckedString::operator() ( int channel, long index )
 
 void i_PluckedString::freeMemory()
 {
-    for ( int i=0; i < MAX_SONIC_CHANNELS; ++i )
+    for (int i=0; i < MAX_SONIC_CHANNELS; ++i)
     {
-        if ( array[i] )
+        if (array[i])
         {
             delete[] array[i];
             array[i] = 0;

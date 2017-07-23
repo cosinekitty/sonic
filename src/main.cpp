@@ -27,13 +27,13 @@
 void SonicGenCleanup();
 
 
-int main ( int argc, char *argv[] )
+int main(int argc, char *argv[])
 {
     std::cout << "Sonic/C++ translator - Copyright (C) 1998 by Don Cross <cosinekitty@gmail.com>\n";
     std::cout << "Version " << SONIC_VERSION << ", released on " << SONIC_RELEASE_DATE << ".\n";
     std::cout << "https://github.com/cosinekitty/sonic" << "\n\n";
 
-    if ( argc < 2 )
+    if (argc < 2)
     {
         std::cerr << "Use:  SONIC sourcefile [sourcefile...]\n\n";
         return 1;
@@ -42,36 +42,36 @@ int main ( int argc, char *argv[] )
     try
     {
         SonicParse_Program program;
-        for ( int k=1; k < argc; ++k )
+        for (int k=1; k < argc; ++k)
         {
             const char *filename = argv[k];
-			std::ifstream input(filename);
-            if ( !input )
+            std::ifstream input(filename);
+            if (!input)
             {
-				std::cerr << "Error:  Cannot open source file '" << filename << "'" << std::endl;
+                std::cerr << "Error:  Cannot open source file '" << filename << "'" << std::endl;
                 return 1;
             }
-            SonicScanner scanner ( input, filename );
-            program.parse ( scanner );
+            SonicScanner scanner(input, filename);
+            program.parse(scanner);
             input.close();
         }
 
         program.validate();
         program.generateCode();
     }
-    catch ( const SonicParseException &spe )
+    catch (const SonicParseException &spe)
     {
         std::cerr << spe;
         SonicGenCleanup();
         return 1;
     }
-    catch ( const char *message )
+    catch (const char *message)
     {
         std::cerr << message << std::endl;
         SonicGenCleanup();
         return 1;
     }
-    catch ( ... )
+    catch (...)
     {
         std::cerr << "Error:  Unknown exception received!" << std::endl;
         throw;
@@ -91,11 +91,11 @@ void SonicGenCleanup()
 
     const SonicToken &programName = SonicParse_Program::GetCurrentProgramName();
     const char *name = programName.queryToken();
-    if ( name && *name )
+    if (name && *name)
     {
         char source [256];
-        sprintf ( source, "%s.cpp", name );
-        remove ( source );
+        sprintf(source, "%s.cpp", name);
+        remove(source);
     }
 }
 

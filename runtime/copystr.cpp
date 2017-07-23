@@ -10,24 +10,24 @@
 #include <copystr.h>
 
 
-char *DDC_CopyString ( const char *string )
+char *DDC_CopyString(const char *string)
 {
-   char *copy = new char [strlen(string) + 1];
-   if ( copy )
-   {
-      strcpy ( copy, string );
-   }
-   return copy;
+    char *copy = new char [strlen(string) + 1];
+    if (copy)
+    {
+        strcpy(copy, string);
+    }
+    return copy;
 }
 
 
-void DDC_DeleteString ( char * &string )
+void DDC_DeleteString(char * &string)
 {
-   if ( string )
-   {
-      delete[] string;
-      string = 0;
-   }
+    if (string)
+    {
+        delete[] string;
+        string = 0;
+    }
 }
 
 

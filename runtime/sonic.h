@@ -35,19 +35,19 @@ enum SonicWaveMode
 };
 
 
-double ScanReal    ( const char *varname, const char *vstring );
-long   ScanInteger ( const char *varname, const char *vstring );
-int    ScanBoolean ( const char *varname, const char *vstring );
+double ScanReal(const char *varname, const char *vstring);
+long   ScanInteger(const char *varname, const char *vstring);
+int    ScanBoolean(const char *varname, const char *vstring);
 
 
 class SonicWave
 {
 public:
-    SonicWave (
+    SonicWave(
         const char *_filename,
         const char *_varname,
         long _requiredSamplingRate,
-        int _requiredNumChannels );
+        int _requiredNumChannels);
 
     ~SonicWave();
 
@@ -56,15 +56,21 @@ public:
     void openForAppend();
     void openForModify();
 
-    long queryNumSamples() const { return inNumSamples; }
-    void read ( double sample[] );
-    void write ( const double sample[] );
-    double fetch ( int c, long i, int &countdown );
-    double interp ( int c, double i, int &countdown );
-    double queryMaxValue() const { return double(maxValue); }
+    long queryNumSamples() const
+    {
+        return inNumSamples;
+    }
+    void read(double sample[]);
+    void write(const double sample[]);
+    double fetch(int c, long i, int &countdown);
+    double interp(int c, double i, int &countdown);
+    double queryMaxValue() const
+    {
+        return double(maxValue);
+    }
 
     void close();
-    void convertToWav ( const char *outWavFilename );   // ... but only if necessary
+    void convertToWav(const char *outWavFilename);      // ... but only if necessary
 
     static void EraseAllTempFiles();
 
@@ -109,22 +115,22 @@ private:
 };
 
 
-typedef void (* Sonic_TransferFunction) ( double f, double &zr, double &zi );
+typedef void (* Sonic_TransferFunction)(double f, double &zr, double &zi);
 
 
 class Sonic_FFT_Filter
 {
 public:
-    Sonic_FFT_Filter ( 
-        int _numChannels, 
+    Sonic_FFT_Filter(
+        int _numChannels,
         long _samplingRate,
-        long _fftSize, 
+        long _fftSize,
         Sonic_TransferFunction _xfer,
-        double _freqShift );         
+        double _freqShift);
 
     ~Sonic_FFT_Filter();
 
-    double filter ( int channel, double value );
+    double filter(int channel, double value);
 
 private:
     int   numChannels;
@@ -149,12 +155,28 @@ private:
 
 // intrinsic functions for the Sonic language...
 
-double Sonic_Noise ( double amplitude );
-inline double Sonic_Square ( double x )  { return x * x; }
-inline double Sonic_Cube   ( double x )  { return x * x * x; }
-inline double Sonic_Quart  ( double x )  { double x2=x*x; return x2*x2; }
-inline double Sonic_Recip  ( double x )  { return 1.0 / x; }
-inline double Sonic_dB     ( double x )  { return pow ( 10.0, x/20.0 ); }
+double Sonic_Noise(double amplitude);
+inline double Sonic_Square(double x)
+{
+    return x * x;
+}
+inline double Sonic_Cube(double x)
+{
+    return x * x * x;
+}
+inline double Sonic_Quart(double x)
+{
+    double x2=x*x;
+    return x2*x2;
+}
+inline double Sonic_Recip(double x)
+{
+    return 1.0 / x;
+}
+inline double Sonic_dB(double x)
+{
+    return pow(10.0, x/20.0);
+}
 
 #endif // __ddc_sonic_runtime
 /*--- end of file sonic.h ---*/

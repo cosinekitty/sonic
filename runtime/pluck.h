@@ -15,12 +15,12 @@
 class i_PluckedString
 {
 public:
-    i_PluckedString ( double _freqHz, double _coeff1, double _coeff2 );
+    i_PluckedString(double _freqHz, double _coeff1, double _coeff2);
     ~i_PluckedString();
 
-    void reset ( int _numChannels, long _samplingRate );
-    double operator() ( int channel, long index );
-    void operator() ( double _freqHz );
+    void reset(int _numChannels, long _samplingRate);
+    double operator()(int channel, long index);
+    void operator()(double _freqHz);
 
 protected:
     void freeMemory();

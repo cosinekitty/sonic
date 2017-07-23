@@ -2,12 +2,12 @@
 
     scan.cpp  -  Copyright (C) 1998 by Don Cross <cosinekitty@gmail.com>
 
-    This module is responsible for scanning and classifying 
+    This module is responsible for scanning and classifying
     lexical tokens for the Sonic programming language.
     Tokens are scanned from an input stream, and can be pushed
     and popped from a stack as necessary for backtracking by the
-    recursive descent parser.  (When SonicScanner::getToken() is 
-    called, it automatically pops the top token off the stack if 
+    recursive descent parser.  (When SonicScanner::getToken() is
+    called, it automatically pops the top token off the stack if
     any are there and returns that token.)
 
 Revision history:
@@ -17,9 +17,9 @@ Revision history:
 
 1998 September 29 [Don Cross]
     Fixed bug:  double-slash comments on consecutive lines were getting
-    messed up in SonicScanner::skipWhitespace().  I have for once 
+    messed up in SonicScanner::skipWhitespace().  I have for once
     found a good use for the 'continue' statement to hack this into
-    correctness.    
+    correctness.
 
 =======================================================================*/
 #include <iostream>
@@ -31,37 +31,37 @@ Revision history:
 
 
 SonicToken::SonicToken():
-    tokenType ( STT_UNKNOWN ),
-    token ( 0 ),
-    line ( 0 ),
-    column ( 0 ),
-    sourceFile ( 0 )
+    tokenType(STT_UNKNOWN),
+    token(0),
+    line(0),
+    column(0),
+    sourceFile(0)
 {
 }
 
 
-SonicToken::SonicToken ( const SonicToken &other ):
-    tokenType ( other.tokenType ),
-    token ( CopyString(other.token) ),
-    line ( other.line ),
-    column ( other.column ),
-    sourceFile ( other.sourceFile )
+SonicToken::SonicToken(const SonicToken &other):
+    tokenType(other.tokenType),
+    token(CopyString(other.token)),
+    line(other.line),
+    column(other.column),
+    sourceFile(other.sourceFile)
 {
 }
 
 
 SonicToken::~SonicToken()
 {
-    DeleteString (token);
+    DeleteString(token);
 }
 
 
-const SonicToken & SonicToken::operator= ( const SonicToken &other )
+const SonicToken & SonicToken::operator= (const SonicToken &other)
 {
-    if ( &other != this )
+    if (&other != this)
     {
-        DeleteString (token);
-        token = CopyString (other.token);
+        DeleteString(token);
+        token = CopyString(other.token);
         tokenType = other.tokenType;
         line = other.line;
         column = other.column;
@@ -72,13 +72,13 @@ const SonicToken & SonicToken::operator= ( const SonicToken &other )
 }
 
 
-void SonicToken::define ( 
-    const char *_token, 
-    int _line, 
-    int _column, 
-    SonicTokenType _tokenType )
+void SonicToken::define(
+    const char *_token,
+    int _line,
+    int _column,
+    SonicTokenType _tokenType)
 {
-    DeleteString (token);
+    DeleteString(token);
     token = CopyString(_token);
     line = _line;
     column = _column;
@@ -87,12 +87,12 @@ void SonicToken::define (
 }
 
 
-bool SonicToken::operator== ( const char *s ) const
+bool SonicToken::operator== (const char *s) const
 {
-    if ( !token || !s )
+    if (!token || !s)
         return false;
 
-    return strcmp ( token, s ) == 0;
+    return strcmp(token, s) == 0;
 }
 
 
@@ -103,15 +103,15 @@ char *SonicScanner::FilenameTable [MAX_SONIC_SOURCE_FILES];
 int SonicScanner::NumFilenames = 0;
 
 
-SonicScanner::SonicScanner ( std::istream &_input, const char *_filename ):
-    input ( _input ),
-    filename ( CopyString(_filename) ),
-    line ( 1 ),
-    column ( 1 ),
-    charStackTop ( -1 ),
-    tokenStackTop ( -1 )
+SonicScanner::SonicScanner(std::istream &_input, const char *_filename):
+    input(_input),
+    filename(CopyString(_filename)),
+    line(1),
+    column(1),
+    charStackTop(-1),
+    tokenStackTop(-1)
 {
-    if ( SonicScanner::NumFilenames >= MAX_SONIC_SOURCE_FILES )
+    if (SonicScanner::NumFilenames >= MAX_SONIC_SOURCE_FILES)
         throw "Too many Sonic source files!";
 
     SonicScanner::FilenameTable [SonicScanner::NumFilenames++] = CopyString(_filename);
@@ -120,21 +120,21 @@ SonicScanner::SonicScanner ( std::istream &_input, const char *_filename ):
 
 SonicScanner::~SonicScanner()
 {
-    DeleteString (filename);
+    DeleteString(filename);
 }
 
 
 const char *SonicScanner::GetCurrentSourceFilename()
 {
     int index = SonicScanner::NumFilenames - 1;
-    if ( index < 0 )
+    if (index < 0)
         throw "Attempt to access source filename when there was none!";
 
     return SonicScanner::FilenameTable[index];
 }
 
 
-SonicTokenType SonicScanner::ClassifySymbol ( const char *s )
+SonicTokenType SonicScanner::ClassifySymbol(const char *s)
 {
     static const char *keyword[] =
     {
@@ -156,9 +156,9 @@ SonicTokenType SonicScanner::ClassifySymbol ( const char *s )
 
     // search keyword table...
 
-    for ( int i=0; keyword[i]; ++i )
+    for (int i=0; keyword[i]; ++i)
     {
-        if ( strcmp(s,keyword[i]) == 0 )
+        if (strcmp(s,keyword[i]) == 0)
             return STT_KEYWORD;
     }
 
@@ -178,9 +178,9 @@ SonicTokenType SonicScanner::ClassifySymbol ( const char *s )
         0
     };
 
-    for ( int i=0; builtin[i]; ++i )
+    for (int i=0; builtin[i]; ++i)
     {
-        if ( strcmp(s,builtin[i]) == 0 )
+        if (strcmp(s,builtin[i]) == 0)
             return STT_BUILTIN;
     }
 
@@ -189,24 +189,24 @@ SonicTokenType SonicScanner::ClassifySymbol ( const char *s )
 
 
 
-static void accept ( char *s, int len, int &index, int c )
+static void accept(char *s, int len, int &index, int c)
 {
-    if ( index >= len-1 )
-        throw SonicParseException ( "token buffer overflow" );
+    if (index >= len-1)
+        throw SonicParseException("token buffer overflow");
 
     s[index++] = static_cast<char>(c);
     s[index] = '\0';
 }
 
 
-bool SonicScanner::getToken ( SonicToken &t, bool forceGet )
+bool SonicScanner::getToken(SonicToken &t, bool forceGet)
 {
-    if ( tokenStackTop >= 0 )
+    if (tokenStackTop >= 0)
     {
         // Getting here means that the token stack is not empty.
         // Pop the top token off the stack and return it, instead of
         // scanning a new token from the input stream.
-        // This mechanism allows the recursive descent parser to 
+        // This mechanism allows the recursive descent parser to
         // backtrack when necessary (which is very often!).
 
         t = tokenStack[tokenStackTop--];
@@ -217,10 +217,10 @@ bool SonicScanner::getToken ( SonicToken &t, bool forceGet )
     int index = 0;
     s[index] = '\0';
 
-    if ( !skipWhitespace() )
+    if (!skipWhitespace())
     {
-        if ( forceGet )
-            throw SonicParseException ( "unexpected end of file" );
+        if (forceGet)
+            throw SonicParseException("unexpected end of file");
 
         return false;
     }
@@ -229,125 +229,125 @@ bool SonicScanner::getToken ( SonicToken &t, bool forceGet )
     int tcolumn = column;
 
     SonicTokenChar tc = get();
-    accept ( s, sizeof(s), index, tc.c );
-    if ( isalpha(tc.c) || tc.c=='_' )
-    {   
+    accept(s, sizeof(s), index, tc.c);
+    if (isalpha(tc.c) || tc.c=='_')
+    {
         tc = peek();
-        while ( isalnum(tc.c) || tc.c=='_' )
+        while (isalnum(tc.c) || tc.c=='_')
         {
-            accept ( s, sizeof(s), index, tc.c );
+            accept(s, sizeof(s), index, tc.c);
             get();
             tc = peek();
         }
 
-        t.define ( s, tline, tcolumn, ClassifySymbol(s) );
+        t.define(s, tline, tcolumn, ClassifySymbol(s));
     }
-    else if ( tc.c == '"' )
+    else if (tc.c == '"')
     {
-        for(;;)
+        for (;;)
         {
             tc = get();
-            if ( tc.c == '"' )
+            if (tc.c == '"')
                 break;
-            else if ( tc.c == EOF || tc.c == '\n' || tc.c == '\r' )
+            else if (tc.c == EOF || tc.c == '\n' || tc.c == '\r')
             {
-                t.define ( s, tline, tcolumn, STT_STRING );
-                throw SonicParseException ( "unterminated string constant", t );
+                t.define(s, tline, tcolumn, STT_STRING);
+                throw SonicParseException("unterminated string constant", t);
             }
             else
-                accept ( s, sizeof(s), index, tc.c );
+                accept(s, sizeof(s), index, tc.c);
         }
 
-        for ( int k=0; (s[k] = s[k+1]) != '\0'; ++k );  // delete '"' at beginning
+        for (int k=0; (s[k] = s[k+1]) != '\0'; ++k);    // delete '"' at beginning
 
-        t.define ( s, tline, tcolumn, STT_STRING );
+        t.define(s, tline, tcolumn, STT_STRING);
     }
-    else if ( isdigit(tc.c) )
+    else if (isdigit(tc.c))
     {
         int eCount = 0;
         bool eFollow = false;
         bool eAfter = false;
         int dotCount = 0;
-        for(;;)
+        for (;;)
         {
             tc = peek();
-            if ( tc.c == EOF )
+            if (tc.c == EOF)
                 break;
 
-            if ( !isdigit(tc.c) && tc.c!='e' && tc.c!='E' && tc.c!='.' )
+            if (!isdigit(tc.c) && tc.c!='e' && tc.c!='E' && tc.c!='.')
             {
-                if ( tc.c == '+' || tc.c == '-' )
+                if (tc.c == '+' || tc.c == '-')
                 {
-                    if ( !eFollow )
+                    if (!eFollow)
                         break;
                 }
                 else
                     break;
             }
 
-            if ( tc.c == '.' )
+            if (tc.c == '.')
             {
-                if ( ++dotCount > 1 )
+                if (++dotCount > 1)
                 {
-                    t.define ( s, tline, column, STT_CONSTANT );
-                    throw SonicParseException ( "extraneous '.' in numeric constant", t );
+                    t.define(s, tline, column, STT_CONSTANT);
+                    throw SonicParseException("extraneous '.' in numeric constant", t);
                 }
 
-                if ( eAfter )
+                if (eAfter)
                 {
-                    t.define ( s, tline, column, STT_CONSTANT );
-                    throw SonicParseException ( "error in numeric constant: '.' not allowed after 'e'/'E'", t );
+                    t.define(s, tline, column, STT_CONSTANT);
+                    throw SonicParseException("error in numeric constant: '.' not allowed after 'e'/'E'", t);
                 }
             }
 
             eFollow = (tc.c=='e' || tc.c=='E');
-            if ( eFollow )
+            if (eFollow)
             {
                 eAfter = true;
-                if ( ++eCount > 1 )
+                if (++eCount > 1)
                 {
-                    t.define ( s, tline, tcolumn, STT_CONSTANT );
-                    throw SonicParseException ( "extraneous 'e'/'E' in numeric constant", t );
+                    t.define(s, tline, tcolumn, STT_CONSTANT);
+                    throw SonicParseException("extraneous 'e'/'E' in numeric constant", t);
                 }
             }
 
-            accept ( s, sizeof(s), index, tc.c );
+            accept(s, sizeof(s), index, tc.c);
             get();
         }
 
-        t.define ( s, tline, tcolumn, STT_CONSTANT );
+        t.define(s, tline, tcolumn, STT_CONSTANT);
     }
     else
     {
         SonicTokenChar tc2 = peek();
-        if ( tc.c == '<' )
+        if (tc.c == '<')
         {
-            if ( tc2.c == '<' || tc2.c == '>' || tc2.c == '=' )
+            if (tc2.c == '<' || tc2.c == '>' || tc2.c == '=')
             {
-                accept ( s, sizeof(s), index, tc2.c );
+                accept(s, sizeof(s), index, tc2.c);
                 get();
             }
         }
-        else if ( strchr ( "+-*/%=>!", tc.c ) )
+        else if (strchr("+-*/%=>!", tc.c))
         {
-            if ( tc2.c == '=' )
+            if (tc2.c == '=')
             {
-                accept ( s, sizeof(s), index, tc2.c );
+                accept(s, sizeof(s), index, tc2.c);
                 get();
             }
         }
 
-        t.define ( s, tline, tcolumn, STT_PUNCTUATION );
+        t.define(s, tline, tcolumn, STT_PUNCTUATION);
     }
 
     return true;
 }
 
 
-void SonicScanner::pushToken ( const SonicToken &t )
+void SonicScanner::pushToken(const SonicToken &t)
 {
-    if ( tokenStackTop >= SCANNER_STACK_SIZE-1 )
-        throw SonicParseException ( "scanner token stack overflow!" );
+    if (tokenStackTop >= SCANNER_STACK_SIZE-1)
+        throw SonicParseException("scanner token stack overflow!");
 
     tokenStack[++tokenStackTop] = t;
 }
@@ -357,59 +357,63 @@ void SonicScanner::pushToken ( const SonicToken &t )
 // exactly which token must appear next in the input for the
 // syntax to be correct.
 
-void SonicScanner::scanExpected ( const char *expectedToken )
+void SonicScanner::scanExpected(const char *expectedToken)
 {
     SonicToken t;
-    const bool gotToken = getToken ( t, false );   // disable EOF exception...
-    if ( !gotToken || t != expectedToken )
+    const bool gotToken = getToken(t, false);      // disable EOF exception...
+    if (!gotToken || t != expectedToken)
     {
         // ... so that we can give a more specific error message to the user.
 
         char temp [256];
-        sprintf ( temp, "expected '%s'", expectedToken );
-        throw SonicParseException ( temp, t );
+        sprintf(temp, "expected '%s'", expectedToken);
+        throw SonicParseException(temp, t);
     }
 }
 
 
 // The following member function skips over whitespace and positions the
 // input stream at the beginning of the next lexical token.
-// Note that it also is responsible for ignoring C++ style comments 
+// Note that it also is responsible for ignoring C++ style comments
 // in the input.
 
 bool SonicScanner::skipWhitespace()
 {
-    for(;;)
+    for (;;)
     {
         SonicTokenChar tc = peek();
-        if ( tc.c == EOF )
+        if (tc.c == EOF)
             return false;
 
-        if ( tc.c == '/' )
+        if (tc.c == '/')
         {
             // might be beginning of comment...
             get();
             SonicTokenChar tc2 = get();
-            if ( tc2.c == '/' )
+            if (tc2.c == '/')
             {
-                do { tc = get(); } while ( tc.c != '\n' && tc.c != EOF );
+                do
+                {
+                    tc = get();
+                }
+                while (tc.c != '\n' && tc.c != EOF);
                 continue;
             }
-            else if ( tc2.c == '*' )
+            else if (tc2.c == '*')
             {
                 bool startOver = false;
-                for(;;)
+                for (;;)
                 {
                     const char *unterm = "Unterminated '/*' comment at EOF";
                     tc = get();
-                    if ( tc.c == EOF )
-                        throw SonicParseException ( unterm );
-                    else if ( tc.c == '*' )
+                    if (tc.c == EOF)
+                        throw SonicParseException(unterm);
+                    else if (tc.c == '*')
                     {
                         tc = get();
-                        if ( tc.c == EOF )
-                            throw SonicParseException ( unterm );
-                        else if ( tc.c == '/' )
+                        if (tc.c == EOF)
+                            throw SonicParseException(unterm);
+                        else if (tc.c == '/')
                         {
                             startOver = true;
                             break;
@@ -417,18 +421,18 @@ bool SonicScanner::skipWhitespace()
                     }
                 }
 
-                if ( startOver )
+                if (startOver)
                     continue;
             }
             else
             {
-                pushChar (tc2);
-                pushChar (tc);
+                pushChar(tc2);
+                pushChar(tc);
                 break;
             }
         }
 
-        if ( !isspace(tc.c) )
+        if (!isspace(tc.c))
             break;
 
         get();
@@ -443,10 +447,10 @@ bool SonicScanner::skipWhitespace()
 // backtracking at the lexical level, just as the token stack
 // allows the parser to do backtracking at the syntactical level.
 
-void SonicScanner::pushChar ( const SonicTokenChar &c )
+void SonicScanner::pushChar(const SonicTokenChar &c)
 {
-    if ( charStackTop >= SCANNER_STACK_SIZE-1 )
-        throw SonicParseException ( "scanner character stack overflow!" );
+    if (charStackTop >= SCANNER_STACK_SIZE-1)
+        throw SonicParseException("scanner character stack overflow!");
 
     charStack[++charStackTop] = c;
 }
@@ -454,7 +458,7 @@ void SonicScanner::pushChar ( const SonicTokenChar &c )
 
 SonicTokenChar SonicScanner::peek()
 {
-    if ( charStackTop >= 0 )
+    if (charStackTop >= 0)
         return charStack[charStackTop];
 
     SonicTokenChar tc;
@@ -468,14 +472,14 @@ SonicTokenChar SonicScanner::peek()
 
 SonicTokenChar SonicScanner::get()
 {
-    if ( charStackTop >= 0 )
+    if (charStackTop >= 0)
         return charStack[charStackTop--];
 
     SonicTokenChar tc;
     tc.c = input.get();
     tc.line = line;
     tc.column = column;
-    if ( tc.c == '\n' )
+    if (tc.c == '\n')
     {
         ++line;
         column = 1;
@@ -492,29 +496,29 @@ SonicTokenChar SonicScanner::get()
 //---------------------------------------------------------------------------------
 
 
-SonicParseException::SonicParseException (
-    const char *_reason )
+SonicParseException::SonicParseException(
+    const char *_reason)
 {
-    strncpy ( reason, _reason, sizeof(reason) );
+    strncpy(reason, _reason, sizeof(reason));
 }
 
 
-SonicParseException::SonicParseException ( 
-    const char *_reason, 
-    const SonicToken &_nearToken ):
-        nearToken ( _nearToken )
+SonicParseException::SonicParseException(
+    const char *_reason,
+    const SonicToken &_nearToken):
+    nearToken(_nearToken)
 {
-    strncpy ( reason, _reason, sizeof(reason) );
+    strncpy(reason, _reason, sizeof(reason));
 }
 
 
-std::ostream & operator<< ( std::ostream &output, const SonicParseException &e )
+std::ostream & operator<< (std::ostream &output, const SonicParseException &e)
 {
     output << "Error:  " << e.reason << std::endl;
-    if ( e.nearToken.queryToken() )
+    if (e.nearToken.queryToken())
     {
         const char *source = e.nearToken.querySourceFilename();
-        if ( source )
+        if (source)
         {
             output << "Source file:  '" << source << "'  ";
         }
@@ -530,18 +534,18 @@ std::ostream & operator<< ( std::ostream &output, const SonicParseException &e )
 //------------------------------------------------------------------------
 
 
-std::ostream & operator << ( std::ostream &output, SonicTokenType t )
+std::ostream & operator << (std::ostream &output, SonicTokenType t)
 {
-    switch ( t )
+    switch (t)
     {
-        case STT_UNKNOWN:       output << "unknown";        break;
-        case STT_KEYWORD:       output << "keyword";        break;
-        case STT_IDENTIFIER:    output << "identifier";     break;
-        case STT_BUILTIN:       output << "builtin";        break;
-        case STT_CONSTANT:      output << "constant";       break;
-        case STT_PUNCTUATION:   output << "punctuation";    break;
-        case STT_STRING:        output << "string";         break;
-        default:                output << "invalid(" << int(t) << ")";  break;
+    case STT_UNKNOWN:       output << "unknown";        break;
+    case STT_KEYWORD:       output << "keyword";        break;
+    case STT_IDENTIFIER:    output << "identifier";     break;
+    case STT_BUILTIN:       output << "builtin";        break;
+    case STT_CONSTANT:      output << "constant";       break;
+    case STT_PUNCTUATION:   output << "punctuation";    break;
+    case STT_STRING:        output << "string";         break;
+    default:                output << "invalid(" << int(t) << ")";  break;
     }
 
     return output;
@@ -551,20 +555,20 @@ std::ostream & operator << ( std::ostream &output, SonicTokenType t )
 //------------------------------------------------------------------------
 
 
-char *CopyString ( const char *s )
+char *CopyString(const char *s)
 {
-    if ( !s )
+    if (!s)
         throw "Attempt to copy a NULL string";
 
     char *p = new char [ 1 + strlen(s) ];
-    strcpy ( p, s );
+    strcpy(p, s);
     return p;
 }
 
 
-void DeleteString ( char * & s )
+void DeleteString(char * & s)
 {
-    if ( s )
+    if (s)
     {
         delete[] s;
         s = 0;

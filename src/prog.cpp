@@ -9,11 +9,11 @@
     Revision history:
 
 1998 October 1 [Don Cross]
-    Minor stuff: added a blank line before call to program function in 
+    Minor stuff: added a blank line before call to program function in
     generated main().
 
 1998 September 28 [Don Cross]
-    Added support for array types.  This required adding the new class 
+    Added support for array types.  This required adding the new class
     SonicParseContext, so that the code could determine at parse time
     whether a symbol preceeding a '[' was a wave variable or an array
     variable.
@@ -25,7 +25,7 @@
 1998 September 19 [Don Cross]
     Added SonicParse_Program::interpolateFlag and interpolateFlag_explicit.
     These allow the programmer to specify whether samples should be fetched
-    from the nearest sample index or should be interpolated linearly 
+    from the nearest sample index or should be interpolated linearly
     between the nearest two samples.
     Deleted bitsPerSample and bitsPerSample_explicit.
     Was not checking the values of the ..._explicit members, which means
@@ -45,36 +45,36 @@
 
 
 SonicParse_Program::SonicParse_Program():
-    samplingRate ( 44100 ),
-    samplingRate_explicit ( false ),
-    numChannels ( 2 ),
-    numChannels_explicit ( false ),
-    interpolateFlag ( true ),
-    interpolateFlag_explicit ( false ),
-    programBody ( 0 ),
-    functionBodyList ( 0 ),
-    functionBodyTail ( 0 ),
-    importList ( 0 ),
-    globalVars ( 0 )
+    samplingRate(44100),
+    samplingRate_explicit(false),
+    numChannels(2),
+    numChannels_explicit(false),
+    interpolateFlag(true),
+    interpolateFlag_explicit(false),
+    programBody(0),
+    functionBodyList(0),
+    functionBodyTail(0),
+    importList(0),
+    globalVars(0)
 {
 }
 
 
 SonicParse_Program::~SonicParse_Program()
 {
-    if ( programBody )
+    if (programBody)
     {
         delete programBody;
         programBody = 0;
     }
 
-    if ( functionBodyList )
+    if (functionBodyList)
     {
         delete functionBodyList;
         functionBodyList = functionBodyTail = 0;
     }
 
-    if ( globalVars )
+    if (globalVars)
     {
         delete globalVars;
         globalVars = 0;
@@ -82,38 +82,38 @@ SonicParse_Program::~SonicParse_Program()
 }
 
 
-SonicParse_Function *SonicParse_Program::findFunction ( const SonicToken &funcName ) const
+SonicParse_Function *SonicParse_Program::findFunction(const SonicToken &funcName) const
 {
-    for ( SonicParse_Function *fp = functionBodyList; fp; fp = fp->next )
+    for (SonicParse_Function *fp = functionBodyList; fp; fp = fp->next)
     {
-        if ( fp->queryName() == funcName )
+        if (fp->queryName() == funcName)
             return fp;
     }
 
-    if ( programBody && programBody->queryName() ==  funcName )
+    if (programBody && programBody->queryName() ==  funcName)
         return programBody;
 
-    throw SonicParseException ( "undefined function", funcName );
+    throw SonicParseException("undefined function", funcName);
 }
 
 
-SonicParse_Function *SonicParse_Program::findImportVar ( 
-    const SonicToken &varname, 
-    SonicParse_Function *enclosingFunc ) const
+SonicParse_Function *SonicParse_Program::findImportVar(
+    const SonicToken &varname,
+    SonicParse_Function *enclosingFunc) const
 {
-    SonicParse_VarDecl *vp = findSymbol ( varname, enclosingFunc, false );
-    if ( vp )
+    SonicParse_VarDecl *vp = findSymbol(varname, enclosingFunc, false);
+    if (vp)
     {
-        if ( vp->queryType() == STYPE_IMPORT )
+        if (vp->queryType() == STYPE_IMPORT)
         {
             const SonicToken *iname = vp->queryType().queryImportName();
-            if ( !iname )
-                throw SonicParseException ( "internal error: import name not found!", varname );
+            if (!iname)
+                throw SonicParseException("internal error: import name not found!", varname);
 
-            return findImportType ( *iname );
+            return findImportType(*iname);
         }
         else
-            throw SonicParseException ( "this variable is not an import function", varname );
+            throw SonicParseException("this variable is not an import function", varname);
     }
 
     return 0;
@@ -122,16 +122,16 @@ SonicParse_Function *SonicParse_Program::findImportVar (
 
 void SonicParse_Program::clearAllResetFlags()
 {
-    for ( SonicParse_VarDecl *vp = globalVars; vp; vp = vp->queryNext() )
-        vp->modifyResetFlag ( false );
+    for (SonicParse_VarDecl *vp = globalVars; vp; vp = vp->queryNext())
+        vp->modifyResetFlag(false);
 }
 
 
-SonicParse_Function *SonicParse_Program::findImportType ( const SonicToken &importName ) const
+SonicParse_Function *SonicParse_Program::findImportType(const SonicToken &importName) const
 {
-    for ( SonicParse_Function *fp = importList; fp; fp = fp->next )
+    for (SonicParse_Function *fp = importList; fp; fp = fp->next)
     {
-        if ( fp->queryName() == importName )
+        if (fp->queryName() == importName)
             return fp;
     }
 
@@ -139,11 +139,11 @@ SonicParse_Function *SonicParse_Program::findImportType ( const SonicToken &impo
 }
 
 
-SonicParse_VarDecl *SonicParse_Program::findGlobalVar ( const SonicToken &name ) const
+SonicParse_VarDecl *SonicParse_Program::findGlobalVar(const SonicToken &name) const
 {
-    for ( SonicParse_VarDecl *vp = globalVars; vp; vp = vp->queryNext() )
+    for (SonicParse_VarDecl *vp = globalVars; vp; vp = vp->queryNext())
     {
-        if ( vp->queryName() == name )
+        if (vp->queryName() == name)
             return vp;
     }
 
@@ -151,30 +151,30 @@ SonicParse_VarDecl *SonicParse_Program::findGlobalVar ( const SonicToken &name )
 }
 
 
-SonicParse_VarDecl *SonicParse_Program::findSymbol ( 
-    const SonicToken &name, 
+SonicParse_VarDecl *SonicParse_Program::findSymbol(
+    const SonicToken &name,
     SonicParse_Function *encloser,
-    bool forceFind ) const
+    bool forceFind) const
 {
     SonicParse_VarDecl *vp = 0;
-    if ( encloser )
-        vp = encloser->findSymbol ( name, forceFind );
+    if (encloser)
+        vp = encloser->findSymbol(name, forceFind);
     else
-        vp = findGlobalVar ( name );
+        vp = findGlobalVar(name);
 
-    if ( forceFind && !vp )
-        throw SonicParseException ( "symbol not declared", name );
+    if (forceFind && !vp)
+        throw SonicParseException("symbol not declared", name);
 
     return vp;
 }
 
 
-int SonicParse_Program::countInstances ( const SonicToken &globalVarName ) const
+int SonicParse_Program::countInstances(const SonicToken &globalVarName) const
 {
     int count = 0;
-    for ( SonicParse_VarDecl *vp = globalVars; vp; vp = vp->queryNext() )
+    for (SonicParse_VarDecl *vp = globalVars; vp; vp = vp->queryNext())
     {
-        if ( vp->queryName() == globalVarName )
+        if (vp->queryName() == globalVarName)
             ++count;
     }
 
@@ -182,192 +182,192 @@ int SonicParse_Program::countInstances ( const SonicToken &globalVarName ) const
 }
 
 
-void SonicParse_Program::parse ( SonicScanner &scanner )
+void SonicParse_Program::parse(SonicScanner &scanner)
 {
-    SonicParseContext px ( *this );
+    SonicParseContext px(*this);
     SonicToken t;
 
-    while ( scanner.getToken ( t, false ) )
+    while (scanner.getToken(t, false))
     {
-        if ( t.queryTokenType() == STT_BUILTIN )
+        if (t.queryTokenType() == STT_BUILTIN)
         {
             SonicToken v;
-            if ( t == "r" || t == "m" )
+            if (t == "r" || t == "m")
             {
                 const char *fussy = "expected positive integer constant";
-                scanner.scanExpected ( "=" );
-                scanner.getToken ( v );
-                if ( v.queryTokenType() != STT_CONSTANT )
-                    throw SonicParseException ( fussy, v );
-                
+                scanner.scanExpected("=");
+                scanner.getToken(v);
+                if (v.queryTokenType() != STT_CONSTANT)
+                    throw SonicParseException(fussy, v);
+
                 const char *vstring = v.queryToken();
-                if ( strchr(vstring,'.') || strchr(vstring,'e') || strchr(vstring,'E') )
-                    throw SonicParseException ( fussy, v );
+                if (strchr(vstring,'.') || strchr(vstring,'e') || strchr(vstring,'E'))
+                    throw SonicParseException(fussy, v);
 
                 const long value = atol(vstring);
-                if ( value <= 0 )
-                    throw SonicParseException ( fussy, v );
+                if (value <= 0)
+                    throw SonicParseException(fussy, v);
 
-                scanner.scanExpected ( ";" );
+                scanner.scanExpected(";");
 
-                if ( t == "r" )
+                if (t == "r")
                 {
-                    if ( samplingRate_explicit )
-                        throw SonicParseException ( "value for 'r' has already been defined in program", t );
+                    if (samplingRate_explicit)
+                        throw SonicParseException("value for 'r' has already been defined in program", t);
 
                     samplingRate = value;
                     samplingRate_explicit = true;
                 }
                 else  // t must hold "m" to get here
                 {
-                    if ( value > MAX_SONIC_CHANNELS )
+                    if (value > MAX_SONIC_CHANNELS)
                     {
                         char temp [128];
-                        sprintf ( temp, "Maximum allowed number of channels is %d", MAX_SONIC_CHANNELS );
-                        throw SonicParseException ( temp, t );
+                        sprintf(temp, "Maximum allowed number of channels is %d", MAX_SONIC_CHANNELS);
+                        throw SonicParseException(temp, t);
                     }
 
-                    if ( numChannels_explicit )
-                        throw SonicParseException ( "value for 'm' has already been defined in program", t );
+                    if (numChannels_explicit)
+                        throw SonicParseException("value for 'm' has already been defined in program", t);
 
                     numChannels = value;
-                    numChannels_explicit = true;                    
+                    numChannels_explicit = true;
                 }
             }
-            else if ( t == "interpolate" )
+            else if (t == "interpolate")
             {
-                scanner.scanExpected ( "=" );
-                scanner.getToken ( v );
-                scanner.scanExpected ( ";" );
+                scanner.scanExpected("=");
+                scanner.getToken(v);
+                scanner.scanExpected(";");
 
-                if ( interpolateFlag_explicit )
-                    throw SonicParseException ( "value for 'interpolate' has already been defined in program", t );
+                if (interpolateFlag_explicit)
+                    throw SonicParseException("value for 'interpolate' has already been defined in program", t);
 
-                if ( v == "true" )
+                if (v == "true")
                     interpolateFlag = true;
-                else if ( v == "false" )
+                else if (v == "false")
                     interpolateFlag = false;
                 else
-                    throw SonicParseException ( "expected 'true' or 'false'", v );
+                    throw SonicParseException("expected 'true' or 'false'", v);
 
                 interpolateFlag_explicit = true;
             }
             else
-                throw ( "cannot assign a value to this built-in symbol", t );
+                throw ("cannot assign a value to this built-in symbol", t);
         }
-        else if ( t == "program" || t == "function" )
+        else if (t == "program" || t == "function")
         {
-            scanner.pushToken ( t );
-            SonicParse_Function *body = SonicParse_Function::Parse ( scanner, px );
-            if ( body->queryIsProgramBody() )
+            scanner.pushToken(t);
+            SonicParse_Function *body = SonicParse_Function::Parse(scanner, px);
+            if (body->queryIsProgramBody())
             {
-                if ( programBody )
-                    throw SonicParseException ( "program body already defined", t );
+                if (programBody)
+                    throw SonicParseException("program body already defined", t);
 
                 programBody = body;
-                SonicParse_Program::SaveCurrentProgramName ( body->queryName() );
+                SonicParse_Program::SaveCurrentProgramName(body->queryName());
             }
             else
             {
-                if ( functionBodyTail )
+                if (functionBodyTail)
                     functionBodyTail = functionBodyTail->next = body;
                 else
                     functionBodyTail = functionBodyList = body;
             }
         }
-        else if ( t == "import" )
+        else if (t == "import")
         {
             SonicParse_Function *tempList=0, *tempTail=0;
 
-            for(;;)
+            for (;;)
             {
                 SonicToken name;
-                scanner.getToken ( name );
-                if ( name.queryTokenType() != STT_IDENTIFIER )
-                    throw SonicParseException ( "expected imported C++ class name", name );
+                scanner.getToken(name);
+                if (name.queryTokenType() != STT_IDENTIFIER)
+                    throw SonicParseException("expected imported C++ class name", name);
 
-                SonicParse_Function *newImport = new SonicParse_Function (
+                SonicParse_Function *newImport = new SonicParse_Function(
                     name,
                     false,
-                    SonicType (STYPE_REAL),
+                    SonicType(STYPE_REAL),
                     0,
                     0,
                     0,
-                    *this );
+                    *this);
 
-                if ( tempTail )
+                if (tempTail)
                     tempTail = tempTail->next = newImport;
                 else
                     tempList = tempTail = newImport;
 
-                scanner.getToken ( t );
-                if ( t == "from" )
+                scanner.getToken(t);
+                if (t == "from")
                 {
                     SonicToken header;
-                    scanner.getToken ( header );
-                    if ( header.queryTokenType() != STT_STRING )
-                        throw SonicParseException ( "expected C++ header filename inside double quotes", header );
+                    scanner.getToken(header);
+                    if (header.queryTokenType() != STT_STRING)
+                        throw SonicParseException("expected C++ header filename inside double quotes", header);
 
-                    scanner.scanExpected ( ";" );
+                    scanner.scanExpected(";");
 
-                    for ( SonicParse_Function *fp = tempList; fp; fp = fp->next )
+                    for (SonicParse_Function *fp = tempList; fp; fp = fp->next)
                         fp->importHeader = header;
 
                     tempTail->next = importList;
                     importList = tempList;
                     break;
                 }
-                else if ( t != "," )
-                    throw SonicParseException ( "expected ',' or 'from'", t );
+                else if (t != ",")
+                    throw SonicParseException("expected ',' or 'from'", t);
             }
         }
-        else if ( t == "var" )
+        else if (t == "var")
         {
-            scanner.pushToken ( t );
-            SonicParse_VarDecl::ParseVarList ( scanner, px, globalVars, true );
+            scanner.pushToken(t);
+            SonicParse_VarDecl::ParseVarList(scanner, px, globalVars, true);
         }
         else
-            throw SonicParseException ( "expected 'program', 'function', 'var', 'import', or constant definition", t );
+            throw SonicParseException("expected 'program', 'function', 'var', 'import', or constant definition", t);
     }
 }
 
 
 void SonicParse_Program::validate()
 {
-    if ( !programBody )
-        throw SonicParseException ( "code contains no program body" );
+    if (!programBody)
+        throw SonicParseException("code contains no program body");
 
     programBody->validate();
 
-    for ( SonicParse_Function *fp = functionBodyList; fp; fp = fp->next )
+    for (SonicParse_Function *fp = functionBodyList; fp; fp = fp->next)
         fp->validate();
 
-    for ( SonicParse_VarDecl *vp = globalVars; vp; vp = vp->queryNext() )
+    for (SonicParse_VarDecl *vp = globalVars; vp; vp = vp->queryNext())
     {
-        int numInstances = countInstances ( vp->queryName() );
-        if ( numInstances < 1 )
-            throw SonicParseException ( "internal error: cannot locate global variable", vp->queryName() );
-        else if ( numInstances > 1 )
-            throw SonicParseException ( "global variable declared more than once", vp->queryName() );
+        int numInstances = countInstances(vp->queryName());
+        if (numInstances < 1)
+            throw SonicParseException("internal error: cannot locate global variable", vp->queryName());
+        else if (numInstances > 1)
+            throw SonicParseException("global variable declared more than once", vp->queryName());
 
-        vp->validate ( *this, 0 );
+        vp->validate(*this, 0);
     }
 }
 
 
 void SonicParse_Program::generateCode()
 {
-    if ( !programBody )
-        throw SonicParseException ( "Internal error: no program body defined!" );
+    if (!programBody)
+        throw SonicParseException("Internal error: no program body defined!");
 
     char temp [512];
     char cppFilename [256];
-    sprintf ( cppFilename, "%s.cpp", programBody->queryName().queryToken() );
-    std::ofstream o ( cppFilename );
-    if ( !o )
+    sprintf(cppFilename, "%s.cpp", programBody->queryName().queryToken());
+    std::ofstream o(cppFilename);
+    if (!o)
     {
-        sprintf ( temp, "Cannot open file '%s' for write.", cppFilename );
-        throw SonicParseException ( temp );
+        sprintf(temp, "Cannot open file '%s' for write.", cppFilename);
+        throw SonicParseException(temp);
     }
 
     time_t now;
@@ -395,64 +395,64 @@ void SonicParse_Program::generateCode()
     o << "const double pi = 4.0 * atan(1.0);\n";
     o << "const double e  = exp(1.0);\n\n";
 
-    genImportIncludes ( o );
-    Sonic_CodeGenContext x (this);
-    genFunctionPrototypes (o, x);
-    genGlobalVariables (o, x);
-    genMain (o, x);
-    genProgramFunction (o, x);
-    genFunctions (o, x);
+    genImportIncludes(o);
+    Sonic_CodeGenContext x(this);
+    genFunctionPrototypes(o, x);
+    genGlobalVariables(o, x);
+    genMain(o, x);
+    genProgramFunction(o, x);
+    genFunctions(o, x);
 
     o << "\n\n/*---  end of file " << cppFilename << "  ---*/\n";
     o.close();
 }
 
 
-void SonicParse_Program::genImportIncludes ( std::ostream &o )
+void SonicParse_Program::genImportIncludes(std::ostream &o)
 {
-    for ( SonicParse_Function *fp = importList; fp; fp = fp->next )
+    for (SonicParse_Function *fp = importList; fp; fp = fp->next)
     {
         bool repeat = false;
-        for ( SonicParse_Function *xp = fp->next; !repeat && xp; xp = xp->next )
-            if ( fp->importHeader == xp->importHeader )
+        for (SonicParse_Function *xp = fp->next; !repeat && xp; xp = xp->next)
+            if (fp->importHeader == xp->importHeader)
                 repeat = true;
 
-        if ( !repeat )
+        if (!repeat)
             o << "#include \"" << fp->importHeader.queryToken() << "\"\n";
     }
 }
 
 
-void SonicParse_Program::genFunctionPrototypes ( std::ostream &o, Sonic_CodeGenContext &x )
+void SonicParse_Program::genFunctionPrototypes(std::ostream &o, Sonic_CodeGenContext &x)
 {
-    programBody->generatePrototype ( o, x );
+    programBody->generatePrototype(o, x);
     o << ";\n\n";
 
-    for ( SonicParse_Function *fp = functionBodyList; fp; fp = fp->next )
+    for (SonicParse_Function *fp = functionBodyList; fp; fp = fp->next)
     {
-        fp->generatePrototype ( o, x );
+        fp->generatePrototype(o, x);
         o << ";\n\n";
     }
 }
 
 
-void SonicParse_Program::genGlobalVariables ( std::ostream &o, Sonic_CodeGenContext &x )
+void SonicParse_Program::genGlobalVariables(std::ostream &o, Sonic_CodeGenContext &x)
 {
-    if ( globalVars )
+    if (globalVars)
     {
         o << "// global variables...\n\n";
-        for ( SonicParse_VarDecl *vp = globalVars; vp; vp = vp->queryNext() )
+        for (SonicParse_VarDecl *vp = globalVars; vp; vp = vp->queryNext())
         {
-            vp->generateCode ( o, x );
+            vp->generateCode(o, x);
             o << ";\n";
         }
 
         o << "\n";
-    }   
+    }
 }
 
 
-void SonicParse_Program::genMain ( std::ostream &o, Sonic_CodeGenContext &x )
+void SonicParse_Program::genMain(std::ostream &o, Sonic_CodeGenContext &x)
 {
     o << "\n";
     o << "int main ( int argc, char *argv[] )\n";
@@ -462,12 +462,12 @@ void SonicParse_Program::genMain ( std::ostream &o, Sonic_CodeGenContext &x )
     // generate code to verify the number of command-line arguments...
 
     int numProgramParms = programBody->numParameters();
-    
+
     o << "    if ( argc != " << (1 + numProgramParms) << " )\n";
     o << "    {\n";
     o << "        cerr << \"Use:  " << programBody->queryName().queryToken();
 
-    for ( SonicParse_VarDecl *pp = programBody->queryParmList(); pp; pp = pp->queryNext() )
+    for (SonicParse_VarDecl *pp = programBody->queryParmList(); pp; pp = pp->queryNext())
     {
         o << " " << pp->queryName().queryToken();
     }
@@ -479,60 +479,60 @@ void SonicParse_Program::genMain ( std::ostream &o, Sonic_CodeGenContext &x )
     // generate code to extract program arguments from argv, argc...
 
     int argc = 0;
-    for ( SonicParse_VarDecl *pp = programBody->queryParmList(); pp; pp = pp->queryNext() )
+    for (SonicParse_VarDecl *pp = programBody->queryParmList(); pp; pp = pp->queryNext())
     {
         ++argc;
-        x.indent ( o );
+        x.indent(o);
 
-        switch ( pp->queryType().queryTypeClass() )
+        switch (pp->queryType().queryTypeClass())
         {
-            case STYPE_INTEGER:     o << "long ";       break;
-            case STYPE_REAL:        o << "double ";     break;
-            case STYPE_BOOLEAN:     o << "int ";        break;
-            case STYPE_WAVE:        o << "SonicWave ";  break;
+        case STYPE_INTEGER:     o << "long ";       break;
+        case STYPE_REAL:        o << "double ";     break;
+        case STYPE_BOOLEAN:     o << "int ";        break;
+        case STYPE_WAVE:        o << "SonicWave ";  break;
 
-            case STYPE_IMPORT:
-                throw SonicParseException ( "cannot pass import type to program", pp->queryName() );
+        case STYPE_IMPORT:
+            throw SonicParseException("cannot pass import type to program", pp->queryName());
 
-            default:
-                throw SonicParseException ( "internal error: invalid program argument type", pp->queryName() );
+        default:
+            throw SonicParseException("internal error: invalid program argument type", pp->queryName());
         }
 
         const char *pname = pp->queryName().queryToken();
         o << LOCAL_SYMBOL_PREFIX << pname;
 
-        switch ( pp->queryType().queryTypeClass() )
+        switch (pp->queryType().queryTypeClass())
         {
-            case STYPE_INTEGER:     
-                o << " = ScanInteger ( \"" << pname << "\", argv[" << argc << "] );\n";
-                break;
+        case STYPE_INTEGER:
+            o << " = ScanInteger ( \"" << pname << "\", argv[" << argc << "] );\n";
+            break;
 
-            case STYPE_REAL:
-                o << " = ScanReal ( \"" << pname << "\", argv[" << argc << "] );\n";
-                break;
+        case STYPE_REAL:
+            o << " = ScanReal ( \"" << pname << "\", argv[" << argc << "] );\n";
+            break;
 
-            case STYPE_BOOLEAN:
-                o << " = ScanBoolean ( \"" << pname << "\", argv[" << argc << "] );\n";
-                break;
+        case STYPE_BOOLEAN:
+            o << " = ScanBoolean ( \"" << pname << "\", argv[" << argc << "] );\n";
+            break;
 
-            case STYPE_WAVE:
-                o << " ( argv[" << argc << "], ";
-                o << '"' << pname << '"';
-                o << ", SamplingRate, NumChannels );\n";
+        case STYPE_WAVE:
+            o << " ( argv[" << argc << "], ";
+            o << '"' << pname << '"';
+            o << ", SamplingRate, NumChannels );\n";
         }
     }
 
     // generate code to call the program function...
 
     o << "\n";
-    x.indent ( o );
+    x.indent(o);
     o << FUNCTION_PREFIX << programBody->queryName().queryToken() << " ( ";
 
-    for ( SonicParse_VarDecl *pp = programBody->queryParmList(); pp; pp = pp->queryNext() )
+    for (SonicParse_VarDecl *pp = programBody->queryParmList(); pp; pp = pp->queryNext())
     {
         o << LOCAL_SYMBOL_PREFIX << pp->queryName().queryToken();
 
-        if ( pp->queryNext() )
+        if (pp->queryNext())
             o << ", ";
     }
 
@@ -541,10 +541,10 @@ void SonicParse_Program::genMain ( std::ostream &o, Sonic_CodeGenContext &x )
     // generate code to convert all float files to permanent WAV files...
 
     argc = 0;
-    for ( SonicParse_VarDecl *pp = programBody->queryParmList(); pp; pp = pp->queryNext() )
+    for (SonicParse_VarDecl *pp = programBody->queryParmList(); pp; pp = pp->queryNext())
     {
         ++argc;
-        if ( pp->queryType() == STYPE_WAVE )
+        if (pp->queryType() == STYPE_WAVE)
         {
             o << "    " << LOCAL_SYMBOL_PREFIX << pp->queryName().queryToken();
             o << ".convertToWav ( argv[" << argc << "] );\n";
@@ -559,23 +559,23 @@ void SonicParse_Program::genMain ( std::ostream &o, Sonic_CodeGenContext &x )
 }
 
 
-void SonicParse_Program::genProgramFunction ( std::ostream &o, Sonic_CodeGenContext &x )
-{   
-    programBody->generateCode ( o, x );
+void SonicParse_Program::genProgramFunction(std::ostream &o, Sonic_CodeGenContext &x)
+{
+    programBody->generateCode(o, x);
 }
 
 
-void SonicParse_Program::genFunctions ( std::ostream &o, Sonic_CodeGenContext &x )
+void SonicParse_Program::genFunctions(std::ostream &o, Sonic_CodeGenContext &x)
 {
-    for ( SonicParse_Function *fp = functionBodyList; fp; fp = fp->next )
-        fp->generateCode ( o, x );
+    for (SonicParse_Function *fp = functionBodyList; fp; fp = fp->next)
+        fp->generateCode(o, x);
 }
 
 
 SonicToken SonicParse_Program::CurrentProgramName;
 
 
-void SonicParse_Program::SaveCurrentProgramName ( const SonicToken &name )
+void SonicParse_Program::SaveCurrentProgramName(const SonicToken &name)
 {
     CurrentProgramName = name;
 }
@@ -589,28 +589,28 @@ const SonicToken & SonicParse_Program::GetCurrentProgramName()
 
 //-----------------------------------------------------------------------------
 
-const SonicParse_VarDecl *SonicParseContext::findVar ( const SonicToken &name ) const
+const SonicParse_VarDecl *SonicParseContext::findVar(const SonicToken &name) const
 {
     // First search local variables and parameters...
 
-    for ( const SonicParse_VarDecl *vp = localVars; vp; vp = vp->queryNext() )
+    for (const SonicParse_VarDecl *vp = localVars; vp; vp = vp->queryNext())
     {
-        if ( vp->queryName() == name )
+        if (vp->queryName() == name)
             return vp;
     }
 
-    for ( const SonicParse_VarDecl *vp = localParms; vp; vp = vp->queryNext() )
+    for (const SonicParse_VarDecl *vp = localParms; vp; vp = vp->queryNext())
     {
-        if ( vp->queryName() == name )
+        if (vp->queryName() == name)
             return vp;
     }
 
     // and then global variables...
 
-	const SonicParse_VarDecl *vp = prog.findGlobalVar ( name );
+    const SonicParse_VarDecl *vp = prog.findGlobalVar(name);
 
-    if ( !vp )
-        throw SonicParseException ( "undefined symbol", name );
+    if (!vp)
+        throw SonicParseException("undefined symbol", name);
 
     return vp;
 }

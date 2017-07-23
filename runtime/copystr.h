@@ -9,8 +9,8 @@
 #ifndef __DDC_COPYSTR_H
 #define __DDC_COPYSTR_H
 
-char *DDC_CopyString   ( const char * );
-void  DDC_DeleteString ( char * & );
+char *DDC_CopyString(const char *);
+void  DDC_DeleteString(char * &);
 
 #endif //  __DDC_COPYSTR_H
 

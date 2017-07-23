@@ -24,25 +24,25 @@
 **           wasting memory.
 */
 
-void fft_double (
+void fft_double(
     unsigned  NumSamples,          /* must be a power of 2 */
     int       InverseTransform,    /* 0=forward FFT, 1=inverse FFT */
     double   *RealIn,              /* array of input's real samples */
     double   *ImaginaryIn,         /* array of input's imag samples */
     double   *RealOut,             /* array of output's reals */
-    double   *ImaginaryOut );      /* array of output's imaginaries */
+    double   *ImaginaryOut);       /* array of output's imaginaries */
 
 
-int IsPowerOfTwo ( unsigned x );
-unsigned NumberOfBitsNeeded ( unsigned PowerOfTwo );
-unsigned ReverseBits ( unsigned index, unsigned NumBits );
+int IsPowerOfTwo(unsigned x);
+unsigned NumberOfBitsNeeded(unsigned PowerOfTwo);
+unsigned ReverseBits(unsigned index, unsigned NumBits);
 
 /*
 **   The following function returns an "abstract frequency" of a
 **   given index into a buffer with a given number of frequency samples.
 **   Multiply return value by sampling rate to get frequency expressed in Hz.
 */
-double Index_to_frequency ( unsigned NumSamples, unsigned Index );
+double Index_to_frequency(unsigned NumSamples, unsigned Index);
 
 
 /*--- end of file fourier.h ---*/
