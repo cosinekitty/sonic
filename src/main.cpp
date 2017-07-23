@@ -29,7 +29,7 @@ void SonicGenCleanup();
 
 int main(int argc, char *argv[])
 {
-    std::cout << "Sonic/C++ translator - Copyright (C) 1998 by Don Cross <cosinekitty@gmail.com>\n";
+    std::cout << "Sonic/C++ translator - Copyright (C) 1998, 2017 by Don Cross <cosinekitty@gmail.com>\n";
     std::cout << "Version " << SONIC_VERSION << ", released on " << SONIC_RELEASE_DATE << ".\n";
     std::cout << "https://github.com/cosinekitty/sonic" << "\n\n";
 

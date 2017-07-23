@@ -66,8 +66,8 @@
 #ifndef __ddc_sonic_parse_h
 #define __ddc_sonic_parse_h
 
-const char * const SONIC_VERSION = "0.907";
-const char * const SONIC_RELEASE_DATE = "10 November 1998";
+const char * const SONIC_VERSION = "1.000";
+const char * const SONIC_RELEASE_DATE = "23 July 2017";
 
 class ostream;
 
