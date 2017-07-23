@@ -11,6 +11,7 @@ Makefile
 Debug
 Release
 *.db
+.vs
 
 # Prerequisites
 *.d
