@@ -1,0 +1,107 @@
+<html>
+
+<head>
+<title>Revision History of the Sonic Programming Language</title>
+</head>
+
+<body bgcolor="tan">
+<h2 align="center">Revision History of the <a href="index.html">Sonic Programming Language</a></h2>
+<h3 align="center">by 
+<a href="http://cosinekitty.com">Don Cross</a> - 
+<a href="mailto:cosinekitty@gmail.com">cosinekitty@gmail.com</a></h3>
+<hr>
+This page lists changes to the <a href="index.html">Sonic programming language</a>, along with the version number and release date of each change.  Changes are listed in reverse chronological order.
+<p>
+
+<table border="1">
+	<tr>
+		<td align="center" width="25%" nowrap><font face="Arial,Geneva"><b>Version</b></font></td>
+		<td align="center" width="25%" nowrap><font face="Arial,Geneva"><b>Date Released</b></font></td>
+		<td align="center" nowrap><font face="Arial,Geneva"><b>Description of Changes</b></font></td>
+	</tr>
+
+	<tr>
+		<td align="center"><font size="+1" face="Arial">0.907</font></td>
+		<td align="center" with="35%" nowrap>10 November 1998</td>
+		<td><ul>
+			<li>Bug fixed in translator: non-program functions were being &quot;forgotten&quot; if they didn't occur in the last source module in a program with more than one source module.</li> 
+			<li>Bug fixed in runtime library: first channel of sample read from the last buffer of a temporary input file was being set to zero.  Now the correct data is returned.</li>
+			<li>Now the runtime library cleans up orphaned temporary files as they occur, instead of waiting until the program finishes.  This keeps them from &quot;piling up&quot;.</li>
+		</ul></td>
+	</tr>
+
+	<tr>
+		<td align="center"><font size="+1" face="Arial">0.906</font></td>
+		<td align="center" with="35%" nowrap>2 October 1998</td>
+		<td><ul>
+			<li>Sonic/C++ translator can now operate on multiple command-line source filenames to produce a single program.  This means programmers can more easily re-use code as collections of functions and global variables.</li>
+			<li>Minor changes to the layout of generated source code.  Not so many blank lines between statements now, etc.</li>
+			<li>Now allow '?' to be the first dimension of an array variable passed to a function.  This is analogous to '[]' in the first dimension of an array in C++.</li>
+		</ul></td>
+	</tr>
+
+	<tr>
+		<td align="center"><font size="+1" face="Arial">0.905</font></td>
+		<td align="center" with="35%" nowrap>30 September 1998</td>
+		<td><ul>
+			<li>Added a <a href="manual.html#syntax_statement_for">for loop</a> construct.</li>
+		</ul></td>
+	</tr>
+
+	<tr>
+		<td align="center"><font size="+1" face="Arial">0.904</font></td>
+		<td align="center" with="35%" nowrap>29 September 1998</td>
+		<td><ul>
+			<li>Added <a href="manual.html#syntax_array">array</a> types, variables, and function parameters.</li>
+			<li>Increased cache size for input waves from 256 samples to 64K samples.  This greatly improves runtime performance for wave assignments that have certain non-linear index expressions.</li>
+			<li>Fixed lexical analyzer bug: double-slash comments at the beginning of two consecutive lines caused the second comment to be not skipped over, resulting in an erroneous parser error.  Yuck!</li>
+			<li>Eliminated unnecessary typecasts in generated C++ calls to intrinsic functions and wave expressions.</li>
+		</ul></td>
+	</tr>
+
+	<tr>
+		<td align="center"><font size="+1" face="Arial">0.903</font></td>
+		<td align="center" with="35%" nowrap>26 September 1998</td>
+		<td><ul>
+			<li>Added Fast Fourier Transform filter pseudo-function 
+<a href="manual.html#pseudofunc_fft">fft</a>.
+			<li>Added support for passing variables to a function by reference.</li>
+		</ul></td>
+	</tr>
+
+	<tr>
+		<td align="center"><font size="+1" face="Arial">0.902</font></td>
+		<td align="center" width="35%" nowrap>21 September 1998</td>
+		<td><ul>
+			<li>Added support for <a href="manual.html#syntax_var">global variables</a>.</li>
+			<li>Fixed a bug in which a variable of type other than 
+<a href="manual.html#syntax_function_import">import function</a> could have more than one initializer expression enclosed in parentheses.</li>
+			<li>There was a bug that caused the 
+<a href="manual.html#syntax_function_user">program function</a>
+to not be found if a function tried to call it, resulting in an &quot;unknown function&quot; error.  This has been corrected.</li>
+			<li>There was a situation where the translator could report an &quot;internal error&quot; that was actually an ordinary syntax error.  The wording of the error message has been changed to avoid confusing the user.</li>
+		</ul></td>
+	</tr>
+
+	<tr>
+		<td align="center"><font size="+1" face="Arial">0.901</font></td>
+		<td align="center" width="35%" nowrap>19 September 1998</td>
+		<td><ul>
+			<li>Added the ability to linearly interpolate between samples when an input wave is subscripted with a non-integer sample index expression.  This results in much smoother sound in that case.  See the documentation about the new built-in constant 
+<tt><a href="manual.html#syntax_constant">interpolate</a></tt>.</li>
+			<li>Now an error occurs when the translator encounters more than one definition of any of the <a href="manual.html#syntax_constant">built-in constants</a>.</li>
+			<li>Was not checking the data types of channel index and sample index in a wave expression.  Now, if they are not of numeric type, a translator error occurs.</li>
+			<li>Made <tt>SonicType::operator==</tt> in the translator source be a const member function.</li>
+			<li>Got rid of member variables <tt>SonicParse_Program::bitsPerSample</tt> and <tt>SonicParse_Program::bitsPerSample_explicit</tt> because they were not being used anyway.</li>
+		</ul></td>
+	</tr>
+
+	<tr>
+		<td align="center"><font size="+1" face="Arial">0.900</font></td>
+		<td align="center" nowrap>14 September 1998</td>
+		<td align="center"><i>First release of Sonic on the Web.</i></td>
+	</tr>
+</table>
+
+</body>
+</html>

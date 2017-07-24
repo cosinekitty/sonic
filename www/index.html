@@ -2,8 +2,7 @@
 <head>
 <title>&quot;Sonic&quot; - a Digital Audio Programming Language</title>
 
-<meta name="description"
-content="Sonic: A Digital Audio Programming Language">
+<meta name="description" content="Sonic: A Digital Audio Programming Language">
 
 <meta name="keywords" content="Sonic, digital audio, DSP, computer programming languages, software, computer music, sound, acoustic models, digital synthesis, synthesizer, sequencer, linear filters, IIR, FIR, sinewave, sawtooth, infinite impulse response, finite impulse response, C++, translator, compiler, interpreter, scripting">
 
@@ -11,9 +10,9 @@ content="Sonic: A Digital Audio Programming Language">
 
 <body bgcolor="lightcyan">
 <h2 align="center">&quot;Sonic&quot; - a Digital Audio Programming Language</h2>
-<h3 align="center">by <a href="http://cosinekitty.com/">Don Cross</a> - <a href="mailto:cosinekitty@gmail.com">cosinekitty@gmail.com</a></h3>
+<h3 align="center">by <a href="http://web.archive.org/web/20010428125557/http://www.intersrv.com/~dcross/">Don Cross</a> - <a href="http://web.archive.org/web/20010428125557/mailto:dcross@intersrv.com">dcross@intersrv.com</a></h3>
 
-<p align="center"><font face="Arial">This page was last updated 21 September 1998.</font></p>
+<p align="center"><font face="Arial">This page was last updated 10 November 1998.</font></p>
 
 <hr>
 
@@ -24,7 +23,6 @@ content="Sonic: A Digital Audio Programming Language">
 	<li><a href="#limits">Limitations of Sonic</a></li>
 	<li><a href="#mechanics">How it Works</a></li>
 	<li><a href="#install">Installation Procedure</a></li>
-	<li><a href="#download">Download</a></li>
 	<li><a href="#revision">Revision History</a></li>
 	<li><a href="#feedback">Feedback Requested</a></li>
 </ul>
@@ -40,7 +38,7 @@ content="Sonic: A Digital Audio Programming Language">
 <ul>
 	<li>Concise, powerful syntax for expressing many DSP algorithms.</li>
 	<li>Many useful digital audio programs can be written in less than 10 lines of code!</li>
-	<li>Built-in support for efficient sinewaves, sawtooths, and linear filters (IIR).
+	<li>Built-in support for efficient sinewaves, sawtooths, Fast Fourier Transforms (FFT), and linear filters (IIR).
 	<li>Language is user-extensible: write your own C++ classes and import them into Sonic programs.</li>
 	<li>Automatic scaling of output levels - Sonic uses temporary floating point files to hold output, then scales to fixed point before exiting.</li>
 	<li>It's <u>free</u>!  I'm doing this for fun, not money.</li>
@@ -49,7 +47,7 @@ content="Sonic: A Digital Audio Programming Language">
 <hr>
 <a name="limits"></a>
 <h3>Limitations of Sonic</h3>
-<ul>
+<ul>	
 	<li>Only the WAV audio format is currently supported.  (Want your favorite format supported?  Point me to a good file format specification and I'll see what I can do...)</li>
 	<li>No console text I/O yet.  Currently you cannot write the classic "Hello World" program in Sonic, unless perhaps you want to output Morse Code!</li>
 	<li>Input and output audio files must be specified on the command line in a Sonic program in order to persist after program execution terminates.  Programs may create temporary files to aid in creating persistent output files, but these temporary files are automatically erased when the program quits.
@@ -78,16 +76,6 @@ This is the recommended installation procedure for getting Sonic up and running 
 	<li>Alternatively, if you are <u>not</u> running 32-bit Windows, you will have to compile the Sonic/C++ translator yourself.  Use your favorite C++ compiler to compile and link all of the <code>*.cpp</code> files in <code>/sonic/src</code>.  All of the source and header files you need come from <code>sonicsrc.zip</code>.  You don't need the <code>runtime.zip</code> to compile and link the translator itself; that source code is used only to compile and link C++ source code generated <u>by</u> the translator.  Make sure the resulting executable is in your search path so that the operating system can find it.</li>
 </ol>
 
-<hr>
-<a name="download"></a>
-<h3>Download version 0.902 (beta)</h3>
-<ul>
-	<li><code><a href="sonicsrc.zip">sonicsrc.zip</a> [50k]</code> - Complete C++ source code to the Sonic/C++ translator.  Developed as a Win32 console mode program, but should be easy to port to other operating systems like Unix, OS/2, etc.  In fact, if you have to modify the source code at all to get this to compile on your system, please let me know at the email address above so that I can fix it.</li>
-	<li><code><a href="sonicexe.zip">sonicexe.zip</a> [76k]</code> - Contains Windows 95 / 98 / NT executable for the Sonic/C++ translator.  Although this is a command-line program, it won't run under MS-DOS or Windows 3.X due to use of 32-bit instructions.  If you are using a 32-bit variety of Microsoft Windows, you can download this file if you don't want to bother with compiling the C++ source in the file <code>sonicsrc.zip</code> above.
-	<li><code><a href="runtime.zip">runtime.zip</a> [14k]</code> - You will need the source code and headers in this zip file to compile and link the output of the Sonic/C++ translator.  This is in effect the runtime library of the Sonic language.
-<!--
-	<li><code><a href="samples.zip">samples.zip</a> []</code> - Download this file for commented sample programs written in Sonic, illustrating useful language features.  Alternatively, <a href="samples.html">browse them online</a>.
--->
 </ul>
 
 <hr>
@@ -107,8 +95,6 @@ Please send any comments, questions, or suggestions about Sonic to the email add
 <p align="center">[
 <a href="http://cosinekitty.com/">home</a>
 ]</p>
-
-<br><br>
 
 </body>
 </html>

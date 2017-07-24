@@ -1,0 +1,46 @@
+<html>
+<head>
+<title>Sample program written in Sonic</title>
+</head>
+
+<body bgcolor="lightcyan">
+<h2 align="center">Sample program written in Sonic</h2>
+The following program illustrates elements of the <a href="index.html">Sonic programming language</a>.  This program allows three WAV filenames to be specified on the command line.  The first two filenames are input files, and the third is the output file.  This program mixes the audio in the two input files and stores the result in the output file.
+
+<hr>
+<blockquote><pre>
+program mix ( inWave1:wave, inWave2:wave, outWave:wave )
+{
+    outWave[c,i] = inWave1[c,i] + inWave2[c,i];
+}
+</pre></blockquote>
+<hr>
+
+This program is extremely simple, but it suffices to illustrate several key concepts in Sonic:
+<ul>
+	<li><b>Automatic Command Line Handling.</b>  There is no need to check the number of command line parameters and print error messages if they are missing or incorrect.  All of these tasks are done automatically, and are implicit in the language.  If the number of command line parameters does not match the argument list to the <tt>program</tt> construct, the Sonic program will print an error message and exit.</li>
+
+	<li><b>Automatic File Management.</b> There is no need to explicitly open and close files.  For example, in the program above, the variables '<tt>inWave1</tt>', '<tt>inWave2</tt>', and '<tt>outWave</tt>' are assigned filenames based on their respective command line parameters.  They are opened based on their use in the program.  In this case, since <tt>outWave</tt> appears on the left side of an assignment operator, it will be used as an output file, whereas the wave variables on the right side of the assignment are opened for input.</li>
+
+	<li><b>Audio Operations Described Parametrically.</b> In Sonic, the programmer defines an entire digital audio operation by describing each sample in the output, without using any explicit looping structure to iterate through the sample indices (i-values) and channels (c-values).  By default, the length of the generated output is the length of the longest input.  The programmer may override this default by specifying the exact number of samples in the output.  When digital audio recordings with unequal durations appear on the right side of the equal sign, the shorter ones are padded at the end with zero values (i.e. silence).</li>
+
+	<li><b>The Power of Placeholders.</b> The symbols '<tt>c</tt>' and '<tt>i</tt>' are not variables in the usual sense.  I call them <i>placeholders</i>.  They stand for the channel index and sample index, respectively, in the output sound.  Both take on successive integer values as a Sonic expression is evaluated.  In any assignment statement with a wave variable followed by '<tt>[c,i]</tt>' on the left side of the equal sign, the expression on the right side is evaluated for all values of <tt>c</tt> and <tt>i</tt>.  The wave assignment mechanism in Sonic acts as if there were an invisible pair of nested 'for' loops surrounding the assignment:
+
+<blockquote><pre>
+for ( int i=0; i &lt; numberOfSamples; ++i )
+    for ( int c=0; c &lt; numberOfChannels; ++c )
+        outWave[c,i] = inWave1[c,i] + inWave2[c,i];
+</pre></blockquote>
+
+This pseudo-code fragment is meant to illustrate that the input and output sounds consist of arrays with two dimensions: the channel dimension and the sample dimension.  In actuality, the operation of the Sonic wave assignment statement is to read and write audio data in files, not memory.  In summary, the Sonic language allows the programmer to operate on large arrays on secondary storage using a concise and familiar syntax.
+</li>
+</ul>
+
+<hr>
+<p align="center"><font size="+1">
+Next Section: <a href="translator.html">How Sonic is Translated into C++</a><br>
+<a href="index.html">Return to Sonic Home Page</a>
+</font></p>
+
+</body>
+</html>
