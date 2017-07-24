@@ -21,17 +21,6 @@ Revision history:
 #ifndef __scan_h
 #define __scan_h
 
-#ifndef _MSC_VER
-#define     bool    int
-#define     true    1
-#define     false   0
-#elif _MSC_VER < 1100
-#define     bool    int
-#define     true    1
-#define     false   0
-#endif
-
-
 char *CopyString(const char *);
 void DeleteString(char * &);
 

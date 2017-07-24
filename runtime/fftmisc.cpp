@@ -24,9 +24,6 @@
 
 #include <fourier.h>
 
-#define TRUE  1
-#define FALSE 0
-
 #define BITS_PER_WORD   (sizeof(unsigned) * 8)
 
 

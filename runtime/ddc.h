@@ -27,11 +27,6 @@ enum DDCRET
 const char *DDCRET_String(DDCRET);      // See source\ddcret.cpp
 
 
-#define  TRUE     1
-#define  FALSE    0
-
-typedef int dBOOLEAN;
-
 typedef unsigned char BYTE;
 
 typedef unsigned char        UINT8;

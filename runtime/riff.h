@@ -110,7 +110,7 @@ struct WaveFormat_Chunk
         header.ckSize   =   sizeof(WaveFormat_ChunkData);
     }
 
-    dBOOLEAN VerifyValidity()
+    bool VerifyValidity() const
     {
         return header.ckID == FourCC("fmt") &&
 
